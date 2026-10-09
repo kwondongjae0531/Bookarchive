@@ -34,7 +34,7 @@ import {
 import { db } from "./firebase";
 
 /*
- * THE READING ARCHIVE — EDITION 10 · THE EDITORIAL SHELF
+ * KWON'S ARCHIVE — EDITION 10 · THE EDITORIAL SHELF
  * 순백색 전시 공간, 책 수에 맞춰 가운데 놓이는 선반, 은은한 조명, 작품 라벨, 펼쳐지는 독서 노트.
  * 한글 책 제목은 이전 서재 화면의 명조 계열 서체로 표현합니다.
  * 기존 Firebase books 구조와 검색/독서 기록을 유지하며 관리자 전용 trash 컬렉션을 추가합니다.
@@ -165,18 +165,18 @@ function BookshelfGallery({
         <a href="#gallery" className="text-[17px] font-black leading-[0.97] tracking-[-0.055em] sm:text-[21px] lg:text-[26px]" aria-label="아카이브 처음으로">
           KWON&apos;S<br />ARCHIVE<span className="ml-0.5 align-top text-[8px] font-normal">®</span>
         </a>
-        <p className="hidden text-[9px] font-medium uppercase tracking-[0.22em] text-[#92918e] md:block">
+        <p className="hidden text-[10px] font-medium uppercase tracking-[0.22em] text-[#6B665E] md:block">
           AN ARCHIVE OF READING & REMEMBERING
         </p>
         <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-8" aria-label="주 메뉴">
-          <a href="#index" className="text-[10px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45">INDEX</a>
+          <a href="#index" className="text-[11px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45">INDEX</a>
           {isAdmin && (
-            <button type="button" onClick={onAdd} className="border-b border-black pb-1 text-[10px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45">
+            <button type="button" onClick={onAdd} className="border-b border-black pb-1 text-[11px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45">
               + ADD BOOK
             </button>
           )}
           {isAdmin && (
-            <button type="button" onClick={onOpenTrash} className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#77746e] transition-opacity hover:opacity-45">
+            <button type="button" onClick={onOpenTrash} className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#77746e] transition-opacity hover:opacity-45">
               TRASH
             </button>
           )}
@@ -184,7 +184,7 @@ function BookshelfGallery({
             type="button"
             disabled={!authReady || authBusy}
             onClick={authUser ? onLogout : onLogin}
-            className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#55534e] transition-opacity hover:opacity-45 disabled:opacity-35"
+            className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#55534e] transition-opacity hover:opacity-45 disabled:opacity-35"
           >
             {!authReady || authBusy ? "WAIT..." : authUser ? "LOG OUT" : "ADMIN LOGIN"}
           </button>
@@ -200,13 +200,13 @@ function BookshelfGallery({
           {hasAdminConfig
             ? "현재 Google 계정에는 관리자 권한이 없어요. 올바른 계정으로 로그인해주세요."
             : "관리자 UID가 아직 설정되지 않았어요. 아래 UID를 복사해 .env.local과 Firestore 보안 규칙에 설정해주세요."}
-          {!hasAdminConfig && <div className="mt-1 break-all font-mono text-[10px] text-[#24231f]">UID: {authUser.uid}</div>}
+          {!hasAdminConfig && <div className="mt-1 break-all font-mono text-[11px] text-[#24231f]">UID: {authUser.uid}</div>}
         </div>
       )}
 
       <div className="mx-auto w-full max-w-[1500px] px-6 pb-16 pt-16 sm:px-12 sm:pb-24 sm:pt-24 lg:px-16 lg:pt-28">
         <div className="mb-14 border-b border-[#DCD8D0] pb-9 sm:mb-20 sm:pb-12">
-          <div className="mb-7 flex flex-wrap items-center justify-between gap-3 font-sans text-[9px] uppercase tracking-[0.22em] text-[#908B83] sm:mb-10">
+          <div className="mb-7 flex flex-wrap items-center justify-between gap-3 font-sans text-[10px] uppercase tracking-[0.22em] text-[#6B665E] sm:mb-10">
             <p>001 <span className="mx-2 text-[#C8C1B7]">/</span> THE COLLECTION</p>
             <p>VOL. 01 <span className="mx-2 text-[#C8C1B7]">—</span> PERSONAL EDITION</p>
           </div>
@@ -215,24 +215,24 @@ function BookshelfGallery({
               <h1 className="text-[clamp(1.85rem,3.65vw,3.05rem)] font-normal leading-[0.94] tracking-[-0.085em]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
                 The shelf<span className="italic">.</span>
               </h1>
-              <p className="mt-6 max-w-[480px] font-sans text-[11px] leading-[1.85] tracking-[0.025em] text-[#8C877E] sm:mt-8 sm:text-[12px]">
+              <p className="mt-6 max-w-[480px] font-sans text-[12px] leading-[1.85] tracking-[0.025em] text-[#6B665E] sm:mt-8 sm:text-[13px]">
                 읽고, 오래 곁에 두고 싶은 이야기들을 모아 둔 작은 서재.
               </p>
             </div>
             <div className="min-w-[110px] border-l border-[#DCD8D0] pl-5 text-right sm:pl-7">
               <p className="font-mono text-[clamp(1.5rem,3.3vw,2.4rem)] leading-none tracking-[-0.06em] text-[#33312D]">{pad(books.length)}</p>
-              <p className="mt-2 font-sans text-[9px] uppercase tracking-[0.2em] text-[#948E85]">BOOKS IN ARCHIVE</p>
+              <p className="mt-2 font-sans text-[10px] uppercase tracking-[0.2em] text-[#6B665E]">BOOKS IN ARCHIVE</p>
             </div>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="flex min-h-[410px] items-center justify-center font-sans text-[10px] tracking-[0.2em] text-[#aaa9a4]">
+          <div className="flex min-h-[410px] items-center justify-center font-sans text-[11px] tracking-[0.2em] text-[#6B665E]">
             LOADING COLLECTION...
           </div>
         ) : books.length === 0 ? (
           <div className="flex min-h-[400px] flex-col items-center justify-center gap-5 text-center">
-            <p className="font-sans text-[10px] tracking-[0.2em] text-[#999892]">AN EMPTY SHELF</p>
+            <p className="font-sans text-[11px] tracking-[0.2em] text-[#6B665E]">AN EMPTY SHELF</p>
             <p className="text-base" style={{ fontFamily: BOOK_TITLE_FONT }}>첫 책을 진열해 볼까요?</p>
             {isAdmin && <button type="button" onClick={onAdd} className="border-b border-black pb-1 font-sans text-xs">+ 첫 책 추가하기</button>}
           </div>
@@ -280,21 +280,21 @@ function BookshelfGallery({
 
                   {/* 미술관 캡션처럼, 번호와 제목을 작게 정렬한 책 라벨 */}
                   <button type="button" onClick={() => onSelect(book.id, "shelf")} className="relative flex h-[108px] w-full flex-col items-start overflow-hidden px-3 pt-4 text-left outline-none transition-opacity duration-300 hover:opacity-70 focus-visible:underline sm:px-5 sm:pt-5 lg:px-7">
-                    <span className="mb-3 flex w-full items-center justify-between gap-1 border-b border-[#E4E0D9] pb-2 font-mono text-[9px] leading-none tracking-[0.09em] text-[#A09A91]">
+                    <span className="mb-3 flex w-full items-center justify-between gap-1 border-b border-[#E4E0D9] pb-2 font-mono text-[10px] leading-none tracking-[0.09em] text-[#6B665E]">
                       <span>NO. {String(activePage * BOOKS_PER_SHELF_PAGE + index + 1).padStart(3, "0")}</span>
-                      <span className="truncate text-[8px]">{book.status === "읽는 중" ? "READING" : "FINISHED"}</span>
+                      <span className="truncate text-[10px]">{book.status === "읽는 중" ? "READING" : "FINISHED"}</span>
                     </span>
                     <span className="block w-full truncate text-[13px] leading-[1.4] tracking-[-0.025em] text-[#30302f] sm:text-[14px]" style={{ fontFamily: BOOK_TITLE_FONT }}>{book.title}</span>
-                    <span className="mt-1.5 block w-full truncate font-sans text-[10px] leading-[1.35] text-[#98928A]">{book.author}</span>
+                    <span className="mt-1.5 block w-full truncate font-sans text-[11px] leading-[1.35] text-[#6B665E]">{book.author}</span>
                   </button>
                 </div>
               ))}
             </div>
 
             <div className="mt-14 flex min-h-10 flex-wrap items-center justify-between gap-4 border-t border-[#DCD8D0] pt-6 font-sans sm:mt-24">
-              <p className="text-[9px] uppercase tracking-[0.19em] text-[#969087]">A CURATED RECORD OF READING <span className="mx-2 text-[#C8C1B7]">/</span> SELECT A BOOK TO EXPLORE</p>
+              <p className="text-[10px] uppercase tracking-[0.19em] text-[#6B665E]">A CURATED RECORD OF READING <span className="mx-2 text-[#C8C1B7]">/</span> SELECT A BOOK TO EXPLORE</p>
               {pageCount > 1 && (
-                <div className="flex items-center gap-6 text-[10px] tracking-[0.14em]">
+                <div className="flex items-center gap-6 text-[11px] tracking-[0.14em]">
                   <button type="button" disabled={activePage === 0} onClick={() => setPage((n) => Math.max(0, n - 1))} className="text-base disabled:opacity-20" aria-label="이전 책장">←</button>
                   <span className="font-mono text-[#75736d]">{pad(activePage + 1)} / {pad(pageCount)}</span>
                   <button type="button" disabled={activePage === pageCount - 1} onClick={() => setPage((n) => Math.min(pageCount - 1, n + 1))} className="text-base disabled:opacity-20" aria-label="다음 책장">→</button>
@@ -309,7 +309,7 @@ function BookshelfGallery({
 }
 
 const fieldClass =
-  "mt-2 block w-full rounded-none border-b border-[#c9c7c1] bg-transparent px-0 py-3 text-[14px] text-[#262520] outline-none placeholder:text-[#a6a49d] focus:border-[#24231f]";
+  "mt-2 block w-full rounded-none border-b border-[#c9c7c1] bg-transparent px-0 py-3 text-[14px] text-[#262520] outline-none placeholder:text-[#716C64] focus:border-[#24231f]";
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -691,14 +691,14 @@ export default function Home() {
       <section id="index" className="mx-auto max-w-[1540px] scroll-mt-8 px-6 pb-24 pt-20 sm:px-12 sm:pb-32 sm:pt-28 lg:px-16">
         <div className="mb-12 grid gap-10 border-t border-[#DCD8D0] border-b border-[#DCD8D0] pb-10 pt-8 md:grid-cols-[1fr_auto] md:items-end sm:pt-10">
           <div>
-            <p className="mb-6 text-[9px] font-semibold uppercase tracking-[0.22em] text-[#89877f]">002 / COLLECTION INDEX</p>
+            <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6B665E]">002 / COLLECTION INDEX</p>
             <h2 className="text-[clamp(1.75rem,3vw,2.85rem)] font-normal leading-[0.98] tracking-[-0.075em]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>The index<span className="italic">.</span></h2>
-            <p className="mt-5 font-sans text-[11px] leading-6 text-[#938D84]">한 권 한 권, 읽어 온 시간의 목록.</p>
+            <p className="mt-5 font-sans text-[12px] leading-6 text-[#6B665E]">한 권 한 권, 읽어 온 시간의 목록.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-7 text-[10px] uppercase tracking-[0.12em]">
-            <span className="text-[#8A8882]">ALL <strong className="ml-1 font-medium text-[#24231f]">{pad(books.length)}</strong></span>
-            <span className="text-[#8A8882]">READ <strong className="ml-1 font-medium text-[#24231f]">{pad(completedCount)}</strong></span>
-            <span className="text-[#8A8882]">READING <strong className="ml-1 font-medium text-[#24231f]">{pad(readingCount)}</strong></span>
+          <div className="flex flex-wrap items-center gap-7 text-[11px] uppercase tracking-[0.12em]">
+            <span className="text-[#6B665E]">ALL <strong className="ml-1 font-medium text-[#24231f]">{pad(books.length)}</strong></span>
+            <span className="text-[#6B665E]">READ <strong className="ml-1 font-medium text-[#24231f]">{pad(completedCount)}</strong></span>
+            <span className="text-[#6B665E]">READING <strong className="ml-1 font-medium text-[#24231f]">{pad(readingCount)}</strong></span>
             <div className="flex items-center gap-3">
               <AnimatePresence initial={false}>
                 {isSearchOpen && (
@@ -718,7 +718,7 @@ export default function Home() {
                       onKeyDown={(event) => { if (event.key === "Escape") closeSearch(); }}
                       placeholder="책 제목 또는 작가"
                       aria-label="책 제목 또는 작가 검색"
-                      className="w-full min-w-0 bg-transparent pb-1 font-sans text-[11px] normal-case tracking-normal outline-none placeholder:text-[#A6A49D]"
+                      className="w-full min-w-0 bg-transparent pb-1 font-sans text-[11px] normal-case tracking-normal outline-none placeholder:text-[#716C64]"
                     />
                   </motion.div>
                 )}
@@ -746,7 +746,7 @@ export default function Home() {
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value as SortBy)}
-                className="cursor-pointer bg-transparent text-[10px] font-medium uppercase tracking-[0.12em] outline-none"
+                className="cursor-pointer bg-transparent text-[11px] font-medium uppercase tracking-[0.12em] outline-none"
               >
                 <option value="latest">등록순</option>
                 <option value="dateDesc">독서일순</option>
@@ -756,18 +756,18 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mb-4 flex items-center justify-between gap-4 font-sans text-[9px] uppercase tracking-[0.18em] text-[#A09A91]">
+        <div className="mb-4 flex items-center justify-between gap-4 font-sans text-[10px] uppercase tracking-[0.18em] text-[#6B665E]">
           <span>{searchQuery.trim() ? `SEARCH RESULTS / ${pad(filteredBooks.length)}` : "ARCHIVE ENTRIES"}</span>
           <span className="hidden sm:inline">TITLE / AUTHOR <span className="ml-6">STATUS / DATE</span></span>
         </div>
 
         {error && <p role="alert" className="my-8 text-sm text-red-700">{error}</p>}
         {isLoading ? (
-          <div className="py-24 text-center text-[10px] tracking-widest text-[#99978f]">LOADING COLLECTION...</div>
+          <div className="py-24 text-center text-[11px] tracking-widest text-[#6B665E]">LOADING COLLECTION...</div>
         ) : books.length === 0 ? (
-          <div className="py-24 text-center text-sm text-[#8D8B84]">{isAdmin ? "아직 기록된 책이 없어요. ADD BOOK으로 첫 책을 추가해 보세요." : "아직 기록된 책이 없어요."}</div>
+          <div className="py-24 text-center text-sm text-[#6B665E]">{isAdmin ? "아직 기록된 책이 없어요. ADD BOOK으로 첫 책을 추가해 보세요." : "아직 기록된 책이 없어요."}</div>
         ) : filteredBooks.length === 0 ? (
-          <div className="py-24 text-center font-sans text-sm text-[#8D8B84]">검색 결과가 없어요. 다른 제목이나 작가를 입력해 보세요.</div>
+          <div className="py-24 text-center font-sans text-sm text-[#6B665E]">검색 결과가 없어요. 다른 제목이나 작가를 입력해 보세요.</div>
         ) : (
           <div>
             {filteredBooks.map((book, index) => (
@@ -781,23 +781,23 @@ export default function Home() {
                 transition={{ duration: 0.32, delay: Math.min(index, 8) * 0.03 }}
                 className="group grid w-full grid-cols-[32px_42px_minmax(0,1fr)_24px] items-center gap-4 border-b border-[#E6E2DB] py-4 text-left transition-colors duration-300 hover:bg-[#F3F1EC] focus-visible:bg-[#F3F1EC] sm:grid-cols-[48px_50px_minmax(0,1fr)_110px_112px_24px] sm:gap-6 sm:py-5"
               >
-                <span className="font-mono text-[10px] text-[#A19F98]">{String(index + 1).padStart(3, "0")}</span>
+                <span className="font-mono text-[11px] text-[#6B665E]">{String(index + 1).padStart(3, "0")}</span>
                 <BookCover book={book} className="aspect-[2/3] w-[42px] shadow-sm sm:w-[50px]" />
                 <span className="min-w-0">
                   <span className="block truncate text-[13px] font-normal leading-[1.5] tracking-[-0.015em] transition-colors group-hover:text-[#54524D] sm:text-[15px]" style={{ fontFamily: BOOK_TITLE_FONT }}>{book.title}</span>
-                  <span className="mt-0.5 block truncate font-sans text-[11px] text-[#85837D]">{book.author}</span>
+                  <span className="mt-0.5 block truncate font-sans text-[11px] text-[#6B665E]">{book.author}</span>
                 </span>
                 <span className="hidden text-[11px] text-[#79776F] sm:block">{book.status}</span>
-                <span className="hidden font-mono text-[10px] text-[#8B8982] sm:block">{book.date}</span>
-                <span className="text-lg text-[#A5A39D] transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[#1A1A18]">↗</span>
+                <span className="hidden font-mono text-[11px] text-[#6B665E] sm:block">{book.date}</span>
+                <span className="text-lg text-[#6B665E] transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[#1A1A18]">↗</span>
               </motion.button>
             ))}
           </div>
         )}
 
-        <footer className="mt-24 flex flex-wrap items-end justify-between gap-6 border-t border-[#DCD8D0] pt-8 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#908E87]">
-          <span>THE READING ARCHIVE <span className="mx-2 text-[#C8C1B7]">/</span> A COLLECTION OF STORIES</span>
-          <span className="font-mono text-[9px] tracking-[0.16em] text-[#ABA59B]">END OF INDEX&nbsp; — &nbsp; VOL. 01</span>
+        <footer className="mt-24 flex flex-wrap items-end justify-between gap-6 border-t border-[#DCD8D0] pt-8 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6B665E]">
+          <span>KWON'S ARCHIVE <span className="mx-2 text-[#C8C1B7]">/</span> A COLLECTION OF STORIES</span>
+          <span className="font-mono text-[10px] tracking-[0.16em] text-[#6B665E]">END OF INDEX&nbsp; — &nbsp; VOL. 01</span>
           {isAdmin && <button type="button" onClick={openAddForm} className="border-b border-[#8D877E] pb-1 text-[#24231f] transition-opacity hover:opacity-50">+ ADD A BOOK ↗</button>}
         </footer>
       </section>
@@ -836,7 +836,7 @@ export default function Home() {
                   >
                     <BookCover book={selectedBook} eager className="aspect-[2/3] w-full" />
                   </motion.div>
-                  <span className="absolute bottom-7 left-8 font-mono text-[9px] tracking-[0.16em] text-[#9B958B]">PLATE 01 / THE READING ARCHIVE</span>
+                  <span className="absolute bottom-7 left-8 font-mono text-[10px] tracking-[0.16em] text-[#6B665E]">PLATE 01 / KWON'S ARCHIVE</span>
                 </div>
                 <motion.div
                   initial={{ opacity: 0, x: prefersReducedMotion ? 0 : 28 }}
@@ -845,7 +845,7 @@ export default function Home() {
                   transition={{ duration: prefersReducedMotion ? 0.12 : 0.48, delay: prefersReducedMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
                   className="flex flex-col justify-center px-8 pb-12 pt-16 sm:px-12 md:px-16 md:py-20"
                 >
-                  <div className="mb-9 flex items-center justify-between gap-4 border-b border-[#DCD8D0] pb-5 font-sans text-[9px] uppercase tracking-[0.2em] text-[#918A80]">
+                  <div className="mb-9 flex items-center justify-between gap-4 border-b border-[#DCD8D0] pb-5 font-sans text-[10px] uppercase tracking-[0.2em] text-[#6B665E]">
                     <p>003 / READING JOURNAL</p>
                     <p>ENTRY {String(Math.max(1, sortedBooks.findIndex((book) => book.id === selectedBook.id) + 1)).padStart(3, "0")}</p>
                   </div>
@@ -853,29 +853,29 @@ export default function Home() {
                   <p className="mt-5 font-sans text-[12px] tracking-[0.035em] text-[#777168]">{selectedBook.author}</p>
                   <div className="mt-10 grid grid-cols-2 gap-6 border-y border-[#DCD8D0] py-5 font-sans">
                     <div>
-                      <p className="mb-2 text-[9px] uppercase tracking-[0.17em] text-[#AAA398]">READING DATE</p>
+                      <p className="mb-2 text-[10px] uppercase tracking-[0.17em] text-[#6B665E]">READING DATE</p>
                       <p className="text-[11px] tracking-[0.05em] text-[#4C4842]">{selectedBook.date || "—"}</p>
                     </div>
                     <div>
-                      <p className="mb-2 text-[9px] uppercase tracking-[0.17em] text-[#AAA398]">STATUS</p>
+                      <p className="mb-2 text-[10px] uppercase tracking-[0.17em] text-[#6B665E]">STATUS</p>
                       <p className="text-[11px] tracking-[0.05em] text-[#4C4842]">{selectedBook.status}</p>
                     </div>
                   </div>
                   {selectedBook.quote && (
                     <div className="mt-10">
-                      <p className="mb-4 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-[#8C8981]">01 / SAVED LINE</p>
+                      <p className="mb-4 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8C8981]">01 / SAVED LINE</p>
                       <blockquote className="border-l-2 border-[#B9B2A7] bg-[#F5F3EF] px-6 py-5 text-[17px] italic leading-[1.95] text-[#4A4842] sm:text-[19px]" style={{ fontFamily: BOOK_TITLE_FONT }}>“{selectedBook.quote}”</blockquote>
                     </div>
                   )}
                   {selectedBook.review && (
                     <div className="mt-10">
-                      <p className="mb-4 border-b border-[#E4E0D9] pb-3 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-[#8C8981]">02 / READING NOTES</p>
+                      <p className="mb-4 border-b border-[#E4E0D9] pb-3 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8C8981]">02 / READING NOTES</p>
                       <p className="whitespace-pre-wrap break-words text-[14px] leading-[2] text-[#5F5D57]">{selectedBook.review}</p>
                     </div>
                   )}
-                  {!selectedBook.quote && !selectedBook.review && <p className="mt-7 text-xs text-[#97948C]">아직 저장된 독서 감상이나 문장이 없어요.</p>}
+                  {!selectedBook.quote && !selectedBook.review && <p className="mt-7 text-xs text-[#6B665E]">아직 저장된 독서 감상이나 문장이 없어요.</p>}
                   {isAdmin && (
-                    <div className="mt-12 flex gap-8 border-t border-[#E4E0D9] pt-6 font-sans text-[10px] font-semibold tracking-[0.14em]">
+                    <div className="mt-12 flex gap-8 border-t border-[#E4E0D9] pt-6 font-sans text-[11px] font-semibold tracking-[0.14em]">
                       <button type="button" onClick={() => openEditForm(selectedBook)} className="border-b border-black/50 pb-1">EDIT ↗</button>
                       <button type="button" onClick={(event) => void handleDeleteBook(selectedBook, event)} className="border-b border-red-800/45 pb-1 text-red-900">DELETE ↗</button>
                     </div>
@@ -903,19 +903,19 @@ export default function Home() {
             >
               <div className="mb-8 flex items-start justify-between gap-5 border-b border-black/15 pb-7">
                 <div>
-                  <p className="mb-4 font-sans text-[9px] font-semibold tracking-[0.23em] text-[#908D84]">PRIVATE ARCHIVE / ADMIN ONLY</p>
+                  <p className="mb-4 font-sans text-[10px] font-semibold tracking-[0.23em] text-[#6B665E]">PRIVATE ARCHIVE / ADMIN ONLY</p>
                   <h2 className="text-4xl font-normal tracking-[-0.07em] sm:text-5xl" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>Trash<span className="italic">.</span></h2>
-                  <p className="mt-4 font-sans text-[11px] leading-5 text-[#77746c]">삭제한 책과 독서 기록은 직접 영구 삭제하기 전까지 보관됩니다.</p>
+                  <p className="mt-4 font-sans text-[12px] leading-5 text-[#77746c]">삭제한 책과 독서 기록은 직접 영구 삭제하기 전까지 보관됩니다.</p>
                 </div>
-                <button type="button" onClick={() => setIsTrashOpen(false)} disabled={Boolean(trashBusyId)} className="text-2xl text-[#89867e] hover:text-black disabled:opacity-30" aria-label="휴지통 닫기">×</button>
+                <button type="button" onClick={() => setIsTrashOpen(false)} disabled={Boolean(trashBusyId)} className="text-2xl text-[#6B665E] hover:text-black disabled:opacity-30" aria-label="휴지통 닫기">×</button>
               </div>
 
               {trashError && <p role="alert" className="mb-6 font-sans text-xs leading-6 text-red-800">{trashError}</p>}
               {isTrashLoading ? (
-                <p className="py-16 text-center font-sans text-[10px] tracking-[0.18em] text-[#99978f]">LOADING TRASH...</p>
+                <p className="py-16 text-center font-sans text-[11px] tracking-[0.18em] text-[#6B665E]">LOADING TRASH...</p>
               ) : trashedBooks.length === 0 && !trashError ? (
                 <div className="py-16 text-center">
-                  <p className="mb-3 font-sans text-[10px] tracking-[0.18em] text-[#99978f]">TRASH IS EMPTY</p>
+                  <p className="mb-3 font-sans text-[11px] tracking-[0.18em] text-[#6B665E]">TRASH IS EMPTY</p>
                   <p className="text-sm" style={{ fontFamily: BOOK_TITLE_FONT }}>휴지통이 비어 있어요.</p>
                 </div>
               ) : (
@@ -925,11 +925,11 @@ export default function Home() {
                       <BookCover book={book} className="aspect-[2/3] w-[56px] shrink-0 shadow-sm sm:w-[70px]" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[15px] text-[#262520]" style={{ fontFamily: BOOK_TITLE_FONT }}>{book.title}</p>
-                        <p className="mt-1 truncate font-sans text-[11px] text-[#89867e]">{book.author}</p>
-                        <p className="mt-2 font-sans text-[10px] text-[#aaa69e]">
+                        <p className="mt-1 truncate font-sans text-[11px] text-[#6B665E]">{book.author}</p>
+                        <p className="mt-2 font-sans text-[11px] text-[#6B665E]">
                           {book.trashedAt ? `삭제일 ${new Date(book.trashedAt).toLocaleDateString("ko-KR")}` : "휴지통 보관 중"}
                         </p>
-                        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 font-sans text-[10px] font-semibold tracking-[0.12em]">
+                        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 font-sans text-[11px] font-semibold tracking-[0.12em]">
                           <button type="button" disabled={Boolean(trashBusyId)} onClick={() => void handleRestoreBook(book)} className="border-b border-black/50 pb-1 transition-opacity hover:opacity-50 disabled:opacity-30">RESTORE ↗</button>
                           <button type="button" disabled={Boolean(trashBusyId)} onClick={() => void handleDeleteForever(book)} className="border-b border-red-800/40 pb-1 text-red-900 transition-opacity hover:opacity-50 disabled:opacity-30">DELETE FOREVER</button>
                         </div>
@@ -939,7 +939,7 @@ export default function Home() {
                 </div>
               )}
               <div className="mt-8 flex justify-end border-t border-black/10 pt-6">
-                <button type="button" disabled={Boolean(trashBusyId)} onClick={() => void fetchTrash()} className="font-sans text-[10px] font-semibold tracking-[0.12em] text-[#77756F] transition-opacity hover:opacity-45 disabled:opacity-30">REFRESH ↗</button>
+                <button type="button" disabled={Boolean(trashBusyId)} onClick={() => void fetchTrash()} className="font-sans text-[11px] font-semibold tracking-[0.12em] text-[#77756F] transition-opacity hover:opacity-45 disabled:opacity-30">REFRESH ↗</button>
               </div>
             </motion.section>
           </motion.div>
@@ -962,10 +962,10 @@ export default function Home() {
             >
               <div className="mb-8 flex items-start justify-between gap-5 border-b border-black/15 pb-7">
                 <div>
-                  <p className="mb-4 text-[9px] font-semibold tracking-[0.23em] text-[#908D84]">ARCHIVE EDITOR</p>
+                  <p className="mb-4 text-[10px] font-semibold tracking-[0.23em] text-[#6B665E]">ARCHIVE EDITOR</p>
                   <h2 className="text-4xl font-normal tracking-[-0.07em] sm:text-5xl" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>{editingBookId ? "Edit a book." : "Add a book."}</h2>
                 </div>
-                <button type="button" onClick={closeForm} disabled={isSaving} className="text-2xl text-[#89867e] hover:text-black" aria-label="입력창 닫기">×</button>
+                <button type="button" onClick={closeForm} disabled={isSaving} className="text-2xl text-[#6B665E] hover:text-black" aria-label="입력창 닫기">×</button>
               </div>
               <form onSubmit={(event) => void handleSubmit(event)} className="space-y-7">
                 <div className="grid gap-7 sm:grid-cols-2">
@@ -993,7 +993,7 @@ export default function Home() {
                 <label className="block text-[12px] text-[#77746c]">독서 감상 (선택)
                   <textarea rows={4} value={form.review || ""} onChange={(event) => setForm({ ...form, review: event.target.value })} placeholder="책을 읽고 난 후의 생각들" className={`${fieldClass} resize-y`} />
                 </label>
-                <div className="flex justify-end gap-6 border-t border-black/15 pt-7 text-[10px] font-semibold uppercase tracking-[0.14em]">
+                <div className="flex justify-end gap-6 border-t border-black/15 pt-7 text-[11px] font-semibold uppercase tracking-[0.14em]">
                   <button type="button" disabled={isSaving} onClick={closeForm} className="text-[#77756F] hover:text-black">CANCEL</button>
                   <button type="submit" disabled={isSaving} className="bg-[#1B1B19] px-7 py-4 text-white transition-colors hover:bg-[#494841] disabled:opacity-50">
                     {isSaving ? "SAVING..." : editingBookId ? "SAVE CHANGES ↗" : "ADD BOOK ↗"}
