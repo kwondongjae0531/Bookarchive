@@ -34,7 +34,7 @@ import {
 import { db } from "./firebase";
 
 /*
- * THE READING ARCHIVE — YOUR PRIVATE EDITOR
+ * THE READING ARCHIVE — EDITION 10 · THE EDITORIAL SHELF
  * 순백색 전시 공간, 책 수에 맞춰 가운데 놓이는 선반, 은은한 조명, 작품 라벨, 펼쳐지는 독서 노트.
  * 한글 책 제목은 이전 서재 화면의 명조 계열 서체로 표현합니다.
  * 기존 Firebase books 구조와 검색/독서 기록을 유지하며 관리자 전용 trash 컬렉션을 추가합니다.
@@ -161,14 +161,14 @@ function BookshelfGallery({
 
   return (
     <section id="gallery" className="relative isolate min-h-[600px] bg-white text-[#181818]">
-      <header className="relative z-30 mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-6 py-7 font-sans sm:px-12 sm:py-9 lg:px-16">
-        <a href="#gallery" className="text-[12px] font-black leading-[0.97] tracking-[-0.055em] sm:text-[15px]" aria-label="아카이브 처음으로">
-          READING<br />ARCHIVE<span className="ml-0.5 align-top text-[8px] font-normal">®</span>
+      <header className="relative z-30 mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 border-b border-[#E9E6E0] px-6 py-7 font-sans sm:px-12 sm:py-9 lg:px-16">
+        <a href="#gallery" className="text-[17px] font-black leading-[0.97] tracking-[-0.055em] sm:text-[21px] lg:text-[26px]" aria-label="아카이브 처음으로">
+          KWON&apos;S<br />ARCHIVE<span className="ml-0.5 align-top text-[8px] font-normal">®</span>
         </a>
         <p className="hidden text-[9px] font-medium uppercase tracking-[0.22em] text-[#92918e] md:block">
-          YOUR PERSONAL LIBRARY
+          AN ARCHIVE OF READING & REMEMBERING
         </p>
-        <nav className="flex items-center gap-3 sm:gap-8" aria-label="주 메뉴">
+        <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-8" aria-label="주 메뉴">
           <a href="#index" className="text-[10px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45">INDEX</a>
           {isAdmin && (
             <button type="button" onClick={onAdd} className="border-b border-black pb-1 text-[10px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45">
@@ -204,15 +204,26 @@ function BookshelfGallery({
         </div>
       )}
 
-      <div className="mx-auto w-full max-w-[1500px] px-6 pb-10 pt-14 sm:px-12 sm:pb-16 sm:pt-20 lg:px-16">
-        <div className="mb-12 flex items-end justify-between gap-6 border-b border-[#e8e8e6] pb-7 sm:mb-16">
-          <div>
-            <p className="mb-4 font-sans text-[9px] font-medium uppercase tracking-[0.24em] text-[#91918d]">001 / THE COLLECTION</p>
-            <h1 className="text-[clamp(2.2rem,5vw,4.3rem)] font-normal leading-none tracking-[-0.075em]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
-              The shelf<span className="italic">.</span>
-            </h1>
+      <div className="mx-auto w-full max-w-[1500px] px-6 pb-16 pt-16 sm:px-12 sm:pb-24 sm:pt-24 lg:px-16 lg:pt-28">
+        <div className="mb-14 border-b border-[#DCD8D0] pb-9 sm:mb-20 sm:pb-12">
+          <div className="mb-7 flex flex-wrap items-center justify-between gap-3 font-sans text-[9px] uppercase tracking-[0.22em] text-[#908B83] sm:mb-10">
+            <p>001 <span className="mx-2 text-[#C8C1B7]">/</span> THE COLLECTION</p>
+            <p>VOL. 01 <span className="mx-2 text-[#C8C1B7]">—</span> PERSONAL EDITION</p>
           </div>
-          <p className="pb-1 font-mono text-[10px] tracking-[0.11em] text-[#8f8f8b]">{pad(books.length)} BOOKS</p>
+          <div className="flex flex-wrap items-end justify-between gap-8">
+            <div className="max-w-[720px]">
+              <h1 className="text-[clamp(1.85rem,3.65vw,3.05rem)] font-normal leading-[0.94] tracking-[-0.085em]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+                The shelf<span className="italic">.</span>
+              </h1>
+              <p className="mt-6 max-w-[480px] font-sans text-[11px] leading-[1.85] tracking-[0.025em] text-[#8C877E] sm:mt-8 sm:text-[12px]">
+                읽고, 오래 곁에 두고 싶은 이야기들을 모아 둔 작은 서재.
+              </p>
+            </div>
+            <div className="min-w-[110px] border-l border-[#DCD8D0] pl-5 text-right sm:pl-7">
+              <p className="font-mono text-[clamp(1.5rem,3.3vw,2.4rem)] leading-none tracking-[-0.06em] text-[#33312D]">{pad(books.length)}</p>
+              <p className="mt-2 font-sans text-[9px] uppercase tracking-[0.2em] text-[#948E85]">BOOKS IN ARCHIVE</p>
+            </div>
+          </div>
         </div>
 
         {isLoading ? (
@@ -227,15 +238,15 @@ function BookshelfGallery({
           </div>
         ) : (
           <>
-            <div className="flex flex-wrap justify-center gap-x-0 gap-y-6 sm:gap-y-12 lg:gap-y-16">
+            <div className="flex flex-wrap justify-center gap-x-0 gap-y-10 sm:gap-y-16 lg:gap-y-20">
               {visibleBooks.map((book, index) => (
                 <div key={book.id} className="group relative flex w-1/2 min-w-0 shrink-0 flex-col justify-end sm:w-1/3 lg:w-1/5" style={{ perspective: '900px' }}>
                   {/* 갤러리의 벽과 책 사이에 넓은 흰 여백을 남깁니다. */}
                   <div className="relative flex h-[235px] items-end justify-center pb-1 sm:h-[280px] lg:h-[305px]">
-                    {/* 평소에는 보이지 않고 호버/키보드 포커스 때만 켜지는 미술관 조명 */}
+                    {/* 전시관처럼 차분하게 퍼지는 은은한 조명 */}
                     <div
                       aria-hidden="true"
-                      className="pointer-events-none absolute -inset-x-2 -inset-y-5 z-0 bg-[radial-gradient(ellipse_60%_62%_at_50%_55%,rgba(224,217,202,0.80)_0%,rgba(246,243,237,0.52)_47%,rgba(255,255,255,0)_83%)] opacity-0 blur-[5px] transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100"
+                      className="pointer-events-none absolute -inset-x-2 -inset-y-5 z-0 bg-[radial-gradient(ellipse_60%_62%_at_50%_55%,rgba(224,217,202,0.42)_0%,rgba(246,243,237,0.25)_47%,rgba(255,255,255,0)_83%)] opacity-0 blur-[5px] transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100"
                     />
                     <motion.button
                       type="button"
@@ -244,8 +255,8 @@ function BookshelfGallery({
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.2 }}
                       transition={{ duration: 0.42, delay: Math.min(index, 7) * 0.045, ease: "easeOut" }}
-                      whileHover={reducedMotion ? undefined : { y: -16, z: 54, scale: 1.08, rotateY: -5, transition: { duration: 0.32, ease: "easeOut" } }}
-                      whileFocus={reducedMotion ? undefined : { y: -12, z: 38, scale: 1.05, transition: { duration: 0.25 } }}
+                      whileHover={reducedMotion ? undefined : { y: -8, z: 18, scale: 1.035, rotateY: -1.5, transition: { duration: 0.34, ease: "easeOut" } }}
+                      whileFocus={reducedMotion ? undefined : { y: -6, z: 12, scale: 1.025, transition: { duration: 0.28 } }}
                       whileTap={reducedMotion ? undefined : { scale: 0.98 }}
                       aria-label={`${book.title} 상세 기록 열기`}
                       className="relative z-10 block w-[min(80%,146px)] origin-bottom cursor-pointer outline-none [transform-style:preserve-3d] focus-visible:ring-2 focus-visible:ring-black sm:w-[min(76%,178px)] lg:w-[min(78%,184px)]"
@@ -253,7 +264,7 @@ function BookshelfGallery({
                       <motion.div
                         layoutId={reducedMotion ? undefined : `archive-cover-${book.id}`}
                         transition={{ layout: { type: "spring", stiffness: 220, damping: 28 } }}
-                        className="relative aspect-[2/3] w-full bg-[#ecebea] shadow-[2px_7px_12px_rgba(0,0,0,0.14)] transition-shadow duration-300 group-hover:shadow-[10px_24px_27px_rgba(0,0,0,0.18)] group-focus-within:shadow-[10px_24px_27px_rgba(0,0,0,0.18)]"
+                        className="relative aspect-[2/3] w-full bg-[#ecebea] shadow-[2px_6px_13px_rgba(0,0,0,0.12)] transition-shadow duration-500 group-hover:shadow-[5px_17px_26px_rgba(0,0,0,0.14)] group-focus-within:shadow-[5px_17px_26px_rgba(0,0,0,0.14)]"
                       >
                         <BookCover book={book} eager={index < 5} className="h-full w-full" />
                         <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-[6px] bg-gradient-to-r from-black/25 to-transparent" />
@@ -265,23 +276,23 @@ function BookshelfGallery({
                   </div>
 
                   {/* 선 하나로만 책장을 표현합니다: 나무 질감 / 두꺼운 3D 박스 사용 안 함. */}
-                  <div aria-hidden="true" className="relative z-0 h-[7px] w-full border-t border-[#bbbcb8] bg-gradient-to-b from-[#f0f0ee] via-[#fafaf9] to-white" />
+                  <div aria-hidden="true" className="relative z-0 h-[6px] w-full border-t border-[#BEB9B0] bg-gradient-to-b from-[#EEECE7] via-[#F9F8F5] to-transparent" />
 
                   {/* 미술관 캡션처럼, 번호와 제목을 작게 정렬한 책 라벨 */}
-                  <button type="button" onClick={() => onSelect(book.id, "shelf")} className="flex h-[87px] w-full flex-col items-start overflow-hidden px-3 pt-3.5 text-left outline-none transition-opacity hover:opacity-65 focus-visible:underline sm:px-5 lg:px-7">
-                    <span className="mb-1.5 flex w-full items-center justify-between gap-1 font-mono text-[9px] leading-none tracking-[0.06em] text-[#A4A19A]">
+                  <button type="button" onClick={() => onSelect(book.id, "shelf")} className="relative flex h-[108px] w-full flex-col items-start overflow-hidden px-3 pt-4 text-left outline-none transition-opacity duration-300 hover:opacity-70 focus-visible:underline sm:px-5 sm:pt-5 lg:px-7">
+                    <span className="mb-3 flex w-full items-center justify-between gap-1 border-b border-[#E4E0D9] pb-2 font-mono text-[9px] leading-none tracking-[0.09em] text-[#A09A91]">
                       <span>NO. {String(activePage * BOOKS_PER_SHELF_PAGE + index + 1).padStart(3, "0")}</span>
                       <span className="truncate text-[8px]">{book.status === "읽는 중" ? "READING" : "FINISHED"}</span>
                     </span>
-                    <span className="block w-full truncate text-[12px] leading-[1.35] tracking-[-0.02em] text-[#30302f] sm:text-[13px]" style={{ fontFamily: BOOK_TITLE_FONT }}>{book.title}</span>
-                    <span className="mt-1 block w-full truncate font-sans text-[10px] leading-[1.3] text-[#aaa9a4]">{book.author}</span>
+                    <span className="block w-full truncate text-[13px] leading-[1.4] tracking-[-0.025em] text-[#30302f] sm:text-[14px]" style={{ fontFamily: BOOK_TITLE_FONT }}>{book.title}</span>
+                    <span className="mt-1.5 block w-full truncate font-sans text-[10px] leading-[1.35] text-[#98928A]">{book.author}</span>
                   </button>
                 </div>
               ))}
             </div>
 
-            <div className="mt-12 flex min-h-10 flex-wrap items-center justify-between gap-4 border-t border-[#e8e8e6] pt-6 font-sans sm:mt-20">
-              <p className="text-[9px] uppercase tracking-[0.19em] text-[#a1a09b]">HOVER TO TAKE A CLOSER LOOK</p>
+            <div className="mt-14 flex min-h-10 flex-wrap items-center justify-between gap-4 border-t border-[#DCD8D0] pt-6 font-sans sm:mt-24">
+              <p className="text-[9px] uppercase tracking-[0.19em] text-[#969087]">A CURATED RECORD OF READING <span className="mx-2 text-[#C8C1B7]">/</span> SELECT A BOOK TO EXPLORE</p>
               {pageCount > 1 && (
                 <div className="flex items-center gap-6 text-[10px] tracking-[0.14em]">
                   <button type="button" disabled={activePage === 0} onClick={() => setPage((n) => Math.max(0, n - 1))} className="text-base disabled:opacity-20" aria-label="이전 책장">←</button>
@@ -305,7 +316,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-  const [sortBy, setSortBy] = useState<SortBy>("latest");
+  const [sortBy, setSortBy] = useState<SortBy>("dateDesc");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -678,10 +689,11 @@ export default function Home() {
 
       {/* 찾기 쉽도록 INDEX 목록과 기존 검색/정렬 기능도 유지합니다. */}
       <section id="index" className="mx-auto max-w-[1540px] scroll-mt-8 px-6 pb-24 pt-20 sm:px-12 sm:pb-32 sm:pt-28 lg:px-16">
-        <div className="mb-12 grid gap-8 border-b border-black/15 pb-10 md:grid-cols-[1fr_auto] md:items-end">
+        <div className="mb-12 grid gap-10 border-t border-[#DCD8D0] border-b border-[#DCD8D0] pb-10 pt-8 md:grid-cols-[1fr_auto] md:items-end sm:pt-10">
           <div>
-            <p className="mb-5 text-[9px] font-semibold uppercase tracking-[0.22em] text-[#89877f]">01 / COLLECTION INDEX</p>
-            <h2 className="text-[clamp(2rem,4vw,4rem)] font-normal leading-none tracking-[-0.075em]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>The index<span className="italic">.</span></h2>
+            <p className="mb-6 text-[9px] font-semibold uppercase tracking-[0.22em] text-[#89877f]">002 / COLLECTION INDEX</p>
+            <h2 className="text-[clamp(1.75rem,3vw,2.85rem)] font-normal leading-[0.98] tracking-[-0.075em]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>The index<span className="italic">.</span></h2>
+            <p className="mt-5 font-sans text-[11px] leading-6 text-[#938D84]">한 권 한 권, 읽어 온 시간의 목록.</p>
           </div>
           <div className="flex flex-wrap items-center gap-7 text-[10px] uppercase tracking-[0.12em]">
             <span className="text-[#8A8882]">ALL <strong className="ml-1 font-medium text-[#24231f]">{pad(books.length)}</strong></span>
@@ -744,11 +756,10 @@ export default function Home() {
           </div>
         </div>
 
-        {searchQuery.trim() && (
-          <div className="mb-5 font-sans text-[10px] tracking-[0.08em] text-[#8A8882]">
-            SEARCH RESULTS / {pad(filteredBooks.length)}
-          </div>
-        )}
+        <div className="mb-4 flex items-center justify-between gap-4 font-sans text-[9px] uppercase tracking-[0.18em] text-[#A09A91]">
+          <span>{searchQuery.trim() ? `SEARCH RESULTS / ${pad(filteredBooks.length)}` : "ARCHIVE ENTRIES"}</span>
+          <span className="hidden sm:inline">TITLE / AUTHOR <span className="ml-6">STATUS / DATE</span></span>
+        </div>
 
         {error && <p role="alert" className="my-8 text-sm text-red-700">{error}</p>}
         {isLoading ? (
@@ -768,7 +779,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.32, delay: Math.min(index, 8) * 0.03 }}
-                className="group grid w-full grid-cols-[32px_42px_minmax(0,1fr)_24px] items-center gap-4 border-b border-black/10 py-3.5 text-left transition-colors hover:bg-[#FAFAFA] sm:grid-cols-[48px_50px_minmax(0,1fr)_110px_112px_24px] sm:gap-6 sm:py-4"
+                className="group grid w-full grid-cols-[32px_42px_minmax(0,1fr)_24px] items-center gap-4 border-b border-[#E6E2DB] py-4 text-left transition-colors duration-300 hover:bg-[#F3F1EC] focus-visible:bg-[#F3F1EC] sm:grid-cols-[48px_50px_minmax(0,1fr)_110px_112px_24px] sm:gap-6 sm:py-5"
               >
                 <span className="font-mono text-[10px] text-[#A19F98]">{String(index + 1).padStart(3, "0")}</span>
                 <BookCover book={book} className="aspect-[2/3] w-[42px] shadow-sm sm:w-[50px]" />
@@ -784,9 +795,10 @@ export default function Home() {
           </div>
         )}
 
-        <footer className="mt-24 flex flex-wrap items-center justify-between gap-6 border-t border-black/15 pt-6 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#908E87]">
-          <span>THE READING ARCHIVE / PERSONAL LIBRARY</span>
-          {isAdmin && <button type="button" onClick={openAddForm} className="text-[#24231f] hover:opacity-50">+ ADD A BOOK ↗</button>}
+        <footer className="mt-24 flex flex-wrap items-end justify-between gap-6 border-t border-[#DCD8D0] pt-8 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#908E87]">
+          <span>THE READING ARCHIVE <span className="mx-2 text-[#C8C1B7]">/</span> A COLLECTION OF STORIES</span>
+          <span className="font-mono text-[9px] tracking-[0.16em] text-[#ABA59B]">END OF INDEX&nbsp; — &nbsp; VOL. 01</span>
+          {isAdmin && <button type="button" onClick={openAddForm} className="border-b border-[#8D877E] pb-1 text-[#24231f] transition-opacity hover:opacity-50">+ ADD A BOOK ↗</button>}
         </footer>
       </section>
 
@@ -797,7 +809,7 @@ export default function Home() {
             key="detail"
             layoutRoot
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c1c1b]/42 p-3 backdrop-blur-[6px] sm:p-7"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c1c1b]/40 p-3 backdrop-blur-[6px] sm:p-7"
             onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedBookId(null); }}
           >
             <motion.section
@@ -806,13 +818,13 @@ export default function Home() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: prefersReducedMotion ? 0 : 12, scale: 0.99 }}
               transition={{ duration: prefersReducedMotion ? 0.12 : 0.38, ease: [0.22, 1, 0.36, 1] }}
-              className="relative max-h-[92vh] w-full max-w-[1020px] overflow-y-auto border border-[#EAE8E3] bg-white text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.16)]"
+              className="relative max-h-[92vh] w-full max-w-[1080px] overflow-y-auto border border-[#E2DED6] bg-white text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.14)]"
             >
               <button type="button" onClick={() => setSelectedBookId(null)} className="absolute right-5 top-4 z-20 flex h-9 w-9 items-center justify-center bg-white/90 text-[25px] text-[#817e76] transition-colors hover:text-[#1A1A18] sm:right-7 sm:top-6" aria-label="상세 화면 닫기">×</button>
-              <div className="grid min-h-[520px] md:grid-cols-[0.88fr_1.12fr]">
+              <div className="grid min-h-[540px] md:grid-cols-[0.9fr_1.1fr]">
                 {/* 책이 선반에서 걸어 나와 펼쳐지는 것처럼, 표지를 크게 보여줍니다. */}
-                <div className="relative flex items-center justify-center overflow-hidden border-b border-[#EEECE8] bg-[#F8F8F6] px-14 py-16 sm:px-20 md:border-b-0 md:border-r md:py-24">
-                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_58%_at_50%_50%,rgba(231,227,219,.75)_0%,rgba(248,248,246,0)_100%)]" />
+                <div className="relative flex items-center justify-center overflow-hidden border-b border-[#E9E5DE] bg-[#F5F3EF] px-12 py-20 sm:px-20 md:border-b-0 md:border-r md:py-24">
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_58%_at_50%_50%,rgba(231,227,219,.45)_0%,rgba(248,248,246,0)_100%)]" />
                   <motion.div
                     key={`detail-cover-${selectedBook.id}`}
                     layoutId={selectionSource === "shelf" && !prefersReducedMotion ? `archive-cover-${selectedBook.id}` : undefined}
@@ -820,38 +832,50 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
                     exit={selectionSource === "shelf" ? undefined : { opacity: 0, y: 20, scale: 0.88 }}
                     transition={prefersReducedMotion ? { duration: 0.12 } : { type: "spring", stiffness: 220, damping: 28, mass: 0.94 }}
-                    className="relative z-10 w-full max-w-[265px] shadow-[12px_24px_35px_rgba(0,0,0,.16)]"
+                    className="relative z-10 w-full max-w-[255px] shadow-[9px_22px_34px_rgba(0,0,0,.14)]"
                   >
                     <BookCover book={selectedBook} eager className="aspect-[2/3] w-full" />
                   </motion.div>
-                  <span className="absolute bottom-6 left-8 font-mono text-[9px] tracking-[0.14em] text-[#A29F98]">THE ARCHIVE / BOOK DETAIL</span>
+                  <span className="absolute bottom-7 left-8 font-mono text-[9px] tracking-[0.16em] text-[#9B958B]">PLATE 01 / THE READING ARCHIVE</span>
                 </div>
                 <motion.div
                   initial={{ opacity: 0, x: prefersReducedMotion ? 0 : 28 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: prefersReducedMotion ? 0 : 10 }}
                   transition={{ duration: prefersReducedMotion ? 0.12 : 0.48, delay: prefersReducedMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex flex-col justify-center px-8 pb-12 pt-16 sm:px-12 md:px-14 md:py-20"
+                  className="flex flex-col justify-center px-8 pb-12 pt-16 sm:px-12 md:px-16 md:py-20"
                 >
-                  <p className="mb-8 font-sans text-[9px] font-semibold uppercase tracking-[0.22em] text-[#908D84]">THE READING JOURNAL / {selectedBook.status}</p>
-                  <h2 className="break-keep text-[clamp(1.9rem,3.6vw,3.4rem)] font-normal leading-[1.08] tracking-[-0.07em]" style={{ fontFamily: BOOK_TITLE_FONT }}>{selectedBook.title}</h2>
-                  <p className="mt-5 text-sm text-[#77756F]">{selectedBook.author}</p>
-                  <p className="mt-9 border-y border-black/15 py-4 text-[10px] tracking-[0.1em] text-[#817F78]">{selectedBook.date} <span className="mx-3">/</span> {selectedBook.status}</p>
+                  <div className="mb-9 flex items-center justify-between gap-4 border-b border-[#DCD8D0] pb-5 font-sans text-[9px] uppercase tracking-[0.2em] text-[#918A80]">
+                    <p>003 / READING JOURNAL</p>
+                    <p>ENTRY {String(Math.max(1, sortedBooks.findIndex((book) => book.id === selectedBook.id) + 1)).padStart(3, "0")}</p>
+                  </div>
+                  <h2 className="break-keep text-[clamp(2.15rem,4vw,4rem)] font-normal leading-[1.12] tracking-[-0.065em]" style={{ fontFamily: BOOK_TITLE_FONT }}>{selectedBook.title}</h2>
+                  <p className="mt-5 font-sans text-[12px] tracking-[0.035em] text-[#777168]">{selectedBook.author}</p>
+                  <div className="mt-10 grid grid-cols-2 gap-6 border-y border-[#DCD8D0] py-5 font-sans">
+                    <div>
+                      <p className="mb-2 text-[9px] uppercase tracking-[0.17em] text-[#AAA398]">READING DATE</p>
+                      <p className="text-[11px] tracking-[0.05em] text-[#4C4842]">{selectedBook.date || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="mb-2 text-[9px] uppercase tracking-[0.17em] text-[#AAA398]">STATUS</p>
+                      <p className="text-[11px] tracking-[0.05em] text-[#4C4842]">{selectedBook.status}</p>
+                    </div>
+                  </div>
                   {selectedBook.quote && (
-                    <div className="mt-8">
-                      <p className="mb-3 text-[9px] font-semibold tracking-[0.2em] text-[#8C8981]">SAVED LINE</p>
-                      <blockquote className="border-l border-black/25 pl-5 text-[16px] italic leading-8 text-[#4A4842]" style={{ fontFamily: BOOK_TITLE_FONT }}>“{selectedBook.quote}”</blockquote>
+                    <div className="mt-10">
+                      <p className="mb-4 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-[#8C8981]">01 / SAVED LINE</p>
+                      <blockquote className="border-l-2 border-[#B9B2A7] bg-[#F5F3EF] px-6 py-5 text-[17px] italic leading-[1.95] text-[#4A4842] sm:text-[19px]" style={{ fontFamily: BOOK_TITLE_FONT }}>“{selectedBook.quote}”</blockquote>
                     </div>
                   )}
                   {selectedBook.review && (
-                    <div className="mt-8">
-                      <p className="mb-3 text-[9px] font-semibold tracking-[0.2em] text-[#8C8981]">NOTES</p>
-                      <p className="whitespace-pre-wrap break-words text-sm leading-7 text-[#5F5D57]">{selectedBook.review}</p>
+                    <div className="mt-10">
+                      <p className="mb-4 border-b border-[#E4E0D9] pb-3 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-[#8C8981]">02 / READING NOTES</p>
+                      <p className="whitespace-pre-wrap break-words text-[14px] leading-[2] text-[#5F5D57]">{selectedBook.review}</p>
                     </div>
                   )}
                   {!selectedBook.quote && !selectedBook.review && <p className="mt-7 text-xs text-[#97948C]">아직 저장된 독서 감상이나 문장이 없어요.</p>}
                   {isAdmin && (
-                    <div className="mt-10 flex gap-8 text-[10px] font-semibold tracking-[0.14em]">
+                    <div className="mt-12 flex gap-8 border-t border-[#E4E0D9] pt-6 font-sans text-[10px] font-semibold tracking-[0.14em]">
                       <button type="button" onClick={() => openEditForm(selectedBook)} className="border-b border-black/50 pb-1">EDIT ↗</button>
                       <button type="button" onClick={(event) => void handleDeleteBook(selectedBook, event)} className="border-b border-red-800/45 pb-1 text-red-900">DELETE ↗</button>
                     </div>
