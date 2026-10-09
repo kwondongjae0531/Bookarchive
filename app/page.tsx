@@ -161,22 +161,22 @@ function BookshelfGallery({
 
   return (
     <section id="gallery" className="relative isolate min-h-[600px] bg-white text-[#181818]">
-      <header className="relative z-30 mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 border-b border-[#E9E6E0] px-6 py-7 font-sans sm:px-12 sm:py-9 lg:px-16">
-        <a href="#gallery" className="text-[17px] font-black leading-[0.97] tracking-[-0.055em] sm:text-[21px] lg:text-[26px]" aria-label="아카이브 처음으로">
+      <header className="relative z-30 mx-auto flex w-full max-w-[1600px] flex-col items-start justify-between gap-4 border-b border-[#E9E6E0] px-5 py-6 font-sans sm:flex-row sm:items-center sm:px-12 sm:py-9 lg:px-16">
+        <a href="#gallery" className="text-[21px] font-black leading-[0.97] tracking-[-0.055em] sm:text-[21px] lg:text-[26px]" aria-label="아카이브 처음으로">
           KWON&apos;S<br />ARCHIVE<span className="ml-0.5 align-top text-[8px] font-normal">®</span>
         </a>
         <p className="hidden text-[10px] font-medium uppercase tracking-[0.22em] text-[#6B665E] md:block">
           AN ARCHIVE OF READING & REMEMBERING
         </p>
-        <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-8" aria-label="주 메뉴">
-          <a href="#index" className="text-[11px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45">INDEX</a>
+        <nav className="flex w-full flex-wrap items-center justify-start gap-x-4 gap-y-1 border-t border-[#E9E6E0] pt-3 sm:w-auto sm:justify-end sm:gap-x-8 sm:border-t-0 sm:pt-0" aria-label="주 메뉴">
+          <a href="#index" className="inline-flex min-h-11 items-center text-[12px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45 sm:min-h-0 sm:text-[11px]">INDEX</a>
           {isAdmin && (
-            <button type="button" onClick={onAdd} className="border-b border-black pb-1 text-[11px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45">
+            <button type="button" onClick={onAdd} className="inline-flex min-h-11 items-center border-b border-black text-[12px] font-semibold uppercase tracking-[0.13em] transition-opacity hover:opacity-45 sm:min-h-0 sm:pb-1 sm:text-[11px]">
               + ADD BOOK
             </button>
           )}
           {isAdmin && (
-            <button type="button" onClick={onOpenTrash} className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#77746e] transition-opacity hover:opacity-45">
+            <button type="button" onClick={onOpenTrash} className="inline-flex min-h-11 items-center text-[12px] font-semibold uppercase tracking-[0.13em] text-[#77746e] transition-opacity hover:opacity-45 sm:min-h-0 sm:text-[11px]">
               TRASH
             </button>
           )}
@@ -184,7 +184,7 @@ function BookshelfGallery({
             type="button"
             disabled={!authReady || authBusy}
             onClick={authUser ? onLogout : onLogin}
-            className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#55534e] transition-opacity hover:opacity-45 disabled:opacity-35"
+            className="inline-flex min-h-11 items-center text-[12px] font-semibold uppercase tracking-[0.13em] text-[#55534e] transition-opacity hover:opacity-45 disabled:opacity-35 sm:min-h-0 sm:text-[11px]"
           >
             {!authReady || authBusy ? "WAIT..." : authUser ? "LOG OUT" : "ADMIN LOGIN"}
           </button>
@@ -204,8 +204,8 @@ function BookshelfGallery({
         </div>
       )}
 
-      <div className="mx-auto w-full max-w-[1500px] px-6 pb-16 pt-16 sm:px-12 sm:pb-24 sm:pt-24 lg:px-16 lg:pt-28">
-        <div className="mb-14 border-b border-[#DCD8D0] pb-9 sm:mb-20 sm:pb-12">
+      <div className="mx-auto w-full max-w-[1500px] px-5 pb-12 pt-12 sm:px-12 sm:pb-24 sm:pt-24 lg:px-16 lg:pt-28">
+        <div className="mb-10 border-b border-[#DCD8D0] pb-8 sm:mb-20 sm:pb-12">
           <div className="mb-7 flex flex-wrap items-center justify-between gap-3 font-sans text-[10px] uppercase tracking-[0.22em] text-[#6B665E] sm:mb-10">
             <p>001 <span className="mx-2 text-[#C8C1B7]">/</span> THE COLLECTION</p>
             <p>VOL. 01 <span className="mx-2 text-[#C8C1B7]">—</span> PERSONAL EDITION</p>
@@ -242,7 +242,7 @@ function BookshelfGallery({
               {visibleBooks.map((book, index) => (
                 <div key={book.id} className="group relative flex w-1/2 min-w-0 shrink-0 flex-col justify-end sm:w-1/3 lg:w-1/5" style={{ perspective: '900px' }}>
                   {/* 갤러리의 벽과 책 사이에 넓은 흰 여백을 남깁니다. */}
-                  <div className="relative flex h-[235px] items-end justify-center pb-1 sm:h-[280px] lg:h-[305px]">
+                  <div className="relative flex h-[210px] items-end justify-center pb-1 sm:h-[280px] lg:h-[305px]">
                     {/* 전시관처럼 차분하게 퍼지는 은은한 조명 */}
                     <div
                       aria-hidden="true"
@@ -279,7 +279,7 @@ function BookshelfGallery({
                   <div aria-hidden="true" className="relative z-0 h-[6px] w-full border-t border-[#BEB9B0] bg-gradient-to-b from-[#EEECE7] via-[#F9F8F5] to-transparent" />
 
                   {/* 미술관 캡션처럼, 번호와 제목을 작게 정렬한 책 라벨 */}
-                  <button type="button" onClick={() => onSelect(book.id, "shelf")} className="relative flex h-[108px] w-full flex-col items-start overflow-hidden px-3 pt-4 text-left outline-none transition-opacity duration-300 hover:opacity-70 focus-visible:underline sm:px-5 sm:pt-5 lg:px-7">
+                  <button type="button" onClick={() => onSelect(book.id, "shelf")} className="relative flex h-[112px] w-full flex-col items-start overflow-hidden px-2 pt-4 text-left outline-none transition-opacity duration-300 hover:opacity-70 focus-visible:underline sm:h-[108px] sm:px-5 sm:pt-5 lg:px-7">
                     <span className="mb-3 flex w-full items-center justify-between gap-1 border-b border-[#E4E0D9] pb-2 font-mono text-[10px] leading-none tracking-[0.09em] text-[#6B665E]">
                       <span>NO. {String(activePage * BOOKS_PER_SHELF_PAGE + index + 1).padStart(3, "0")}</span>
                       <span className="truncate text-[10px]">{book.status === "읽는 중" ? "READING" : "FINISHED"}</span>
@@ -295,9 +295,9 @@ function BookshelfGallery({
               <p className="text-[10px] uppercase tracking-[0.19em] text-[#6B665E]">A CURATED RECORD OF READING <span className="mx-2 text-[#C8C1B7]">/</span> SELECT A BOOK TO EXPLORE</p>
               {pageCount > 1 && (
                 <div className="flex items-center gap-6 text-[11px] tracking-[0.14em]">
-                  <button type="button" disabled={activePage === 0} onClick={() => setPage((n) => Math.max(0, n - 1))} className="text-base disabled:opacity-20" aria-label="이전 책장">←</button>
+                  <button type="button" disabled={activePage === 0} onClick={() => setPage((n) => Math.max(0, n - 1))} className="flex min-h-11 min-w-11 items-center justify-center text-base disabled:opacity-20 sm:min-h-0 sm:min-w-0" aria-label="이전 책장">←</button>
                   <span className="font-mono text-[#75736d]">{pad(activePage + 1)} / {pad(pageCount)}</span>
-                  <button type="button" disabled={activePage === pageCount - 1} onClick={() => setPage((n) => Math.min(pageCount - 1, n + 1))} className="text-base disabled:opacity-20" aria-label="다음 책장">→</button>
+                  <button type="button" disabled={activePage === pageCount - 1} onClick={() => setPage((n) => Math.min(pageCount - 1, n + 1))} className="flex min-h-11 min-w-11 items-center justify-center text-base disabled:opacity-20 sm:min-h-0 sm:min-w-0" aria-label="다음 책장">→</button>
                 </div>
               )}
             </div>
@@ -309,7 +309,7 @@ function BookshelfGallery({
 }
 
 const fieldClass =
-  "mt-2 block w-full rounded-none border-b border-[#c9c7c1] bg-transparent px-0 py-3 text-[14px] text-[#262520] outline-none placeholder:text-[#716C64] focus:border-[#24231f]";
+  "mt-2 block w-full rounded-none border-b border-[#c9c7c1] bg-transparent px-0 py-3 text-[16px] text-[#262520] outline-none placeholder:text-[#716C64] focus:border-[#24231f] sm:text-[14px]";
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -688,14 +688,14 @@ export default function Home() {
       />
 
       {/* 찾기 쉽도록 INDEX 목록과 기존 검색/정렬 기능도 유지합니다. */}
-      <section id="index" className="mx-auto max-w-[1540px] scroll-mt-8 px-6 pb-24 pt-20 sm:px-12 sm:pb-32 sm:pt-28 lg:px-16">
-        <div className="mb-12 grid gap-10 border-t border-[#DCD8D0] border-b border-[#DCD8D0] pb-10 pt-8 md:grid-cols-[1fr_auto] md:items-end sm:pt-10">
+      <section id="index" className="mx-auto max-w-[1540px] scroll-mt-8 px-5 pb-20 pt-14 sm:px-12 sm:pb-32 sm:pt-28 lg:px-16">
+        <div className="mb-9 grid gap-7 border-t border-[#DCD8D0] border-b border-[#DCD8D0] pb-8 pt-8 sm:mb-12 sm:gap-10 sm:pb-10 sm:pt-10 md:grid-cols-[1fr_auto] md:items-end">
           <div>
             <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6B665E]">002 / COLLECTION INDEX</p>
             <h2 className="text-[clamp(1.75rem,3vw,2.85rem)] font-normal leading-[0.98] tracking-[-0.075em]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>The index<span className="italic">.</span></h2>
             <p className="mt-5 font-sans text-[12px] leading-6 text-[#6B665E]">한 권 한 권, 읽어 온 시간의 목록.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-7 text-[11px] uppercase tracking-[0.12em]">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-[11px] uppercase tracking-[0.12em] sm:gap-7">
             <span className="text-[#6B665E]">ALL <strong className="ml-1 font-medium text-[#24231f]">{pad(books.length)}</strong></span>
             <span className="text-[#6B665E]">READ <strong className="ml-1 font-medium text-[#24231f]">{pad(completedCount)}</strong></span>
             <span className="text-[#6B665E]">READING <strong className="ml-1 font-medium text-[#24231f]">{pad(readingCount)}</strong></span>
@@ -728,7 +728,7 @@ export default function Home() {
                 onClick={() => { if (isSearchOpen) closeSearch(); else setIsSearchOpen(true); }}
                 aria-label={isSearchOpen ? "검색 닫기" : "책 검색 열기"}
                 aria-expanded={isSearchOpen}
-                className="flex h-7 w-7 items-center justify-center text-[#34332f] transition-opacity hover:opacity-50"
+                className="flex h-11 w-11 items-center justify-center text-[#34332f] transition-opacity hover:opacity-50 sm:h-7 sm:w-7"
               >
                 {isSearchOpen ? (
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
@@ -746,7 +746,7 @@ export default function Home() {
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value as SortBy)}
-                className="cursor-pointer bg-transparent text-[11px] font-medium uppercase tracking-[0.12em] outline-none"
+                className="min-h-11 cursor-pointer bg-transparent text-[12px] font-medium uppercase tracking-[0.12em] outline-none sm:min-h-0 sm:text-[11px]"
               >
                 <option value="latest">등록순</option>
                 <option value="dateDesc">독서일순</option>
@@ -779,12 +779,12 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.32, delay: Math.min(index, 8) * 0.03 }}
-                className="group grid w-full grid-cols-[32px_42px_minmax(0,1fr)_24px] items-center gap-4 border-b border-[#E6E2DB] py-4 text-left transition-colors duration-300 hover:bg-[#F3F1EC] focus-visible:bg-[#F3F1EC] sm:grid-cols-[48px_50px_minmax(0,1fr)_110px_112px_24px] sm:gap-6 sm:py-5"
+                className="group grid w-full grid-cols-[24px_40px_minmax(0,1fr)_20px] items-center gap-2 border-b border-[#E6E2DB] py-4 text-left transition-colors duration-300 hover:bg-[#F3F1EC] focus-visible:bg-[#F3F1EC] sm:grid-cols-[48px_50px_minmax(0,1fr)_110px_112px_24px] sm:gap-6 sm:py-5"
               >
                 <span className="font-mono text-[11px] text-[#6B665E]">{String(index + 1).padStart(3, "0")}</span>
-                <BookCover book={book} className="aspect-[2/3] w-[42px] shadow-sm sm:w-[50px]" />
+                <BookCover book={book} className="aspect-[2/3] w-[40px] shadow-sm sm:w-[50px]" />
                 <span className="min-w-0">
-                  <span className="block truncate text-[13px] font-normal leading-[1.5] tracking-[-0.015em] transition-colors group-hover:text-[#54524D] sm:text-[15px]" style={{ fontFamily: BOOK_TITLE_FONT }}>{book.title}</span>
+                  <span className="block truncate text-[14px] font-normal leading-[1.5] tracking-[-0.015em] transition-colors group-hover:text-[#54524D] sm:text-[15px]" style={{ fontFamily: BOOK_TITLE_FONT }}>{book.title}</span>
                   <span className="mt-0.5 block truncate font-sans text-[11px] text-[#6B665E]">{book.author}</span>
                 </span>
                 <span className="hidden text-[11px] text-[#79776F] sm:block">{book.status}</span>
@@ -809,7 +809,7 @@ export default function Home() {
             key="detail"
             layoutRoot
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c1c1b]/40 p-3 backdrop-blur-[6px] sm:p-7"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c1c1b]/40 p-0 backdrop-blur-[6px] sm:p-7"
             onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedBookId(null); }}
           >
             <motion.section
@@ -818,12 +818,12 @@ export default function Home() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: prefersReducedMotion ? 0 : 12, scale: 0.99 }}
               transition={{ duration: prefersReducedMotion ? 0.12 : 0.38, ease: [0.22, 1, 0.36, 1] }}
-              className="relative max-h-[92vh] w-full max-w-[1080px] overflow-y-auto border border-[#E2DED6] bg-white text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.14)]"
+              className="relative h-[100dvh] max-h-[100dvh] w-full max-w-[1080px] overflow-y-auto overscroll-contain border border-[#E2DED6] bg-white text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.14)] sm:h-auto sm:max-h-[92vh]"
             >
-              <button type="button" onClick={() => setSelectedBookId(null)} className="absolute right-5 top-4 z-20 flex h-9 w-9 items-center justify-center bg-white/90 text-[25px] text-[#817e76] transition-colors hover:text-[#1A1A18] sm:right-7 sm:top-6" aria-label="상세 화면 닫기">×</button>
+              <button type="button" onClick={() => setSelectedBookId(null)} className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center bg-white/95 text-[25px] text-[#817e76] transition-colors hover:text-[#1A1A18] sm:right-7 sm:top-6" aria-label="상세 화면 닫기">×</button>
               <div className="grid min-h-[540px] md:grid-cols-[0.9fr_1.1fr]">
                 {/* 책이 선반에서 걸어 나와 펼쳐지는 것처럼, 표지를 크게 보여줍니다. */}
-                <div className="relative flex items-center justify-center overflow-hidden border-b border-[#E9E5DE] bg-[#F5F3EF] px-12 py-20 sm:px-20 md:border-b-0 md:border-r md:py-24">
+                <div className="relative flex items-center justify-center overflow-hidden border-b border-[#E9E5DE] bg-[#F5F3EF] px-8 py-10 sm:px-20 sm:py-20 md:border-b-0 md:border-r md:py-24">
                   <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_58%_58%_at_50%_50%,rgba(231,227,219,.45)_0%,rgba(248,248,246,0)_100%)]" />
                   <motion.div
                     key={`detail-cover-${selectedBook.id}`}
@@ -832,7 +832,7 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
                     exit={selectionSource === "shelf" ? undefined : { opacity: 0, y: 20, scale: 0.88 }}
                     transition={prefersReducedMotion ? { duration: 0.12 } : { type: "spring", stiffness: 220, damping: 28, mass: 0.94 }}
-                    className="relative z-10 w-full max-w-[255px] shadow-[9px_22px_34px_rgba(0,0,0,.14)]"
+                    className="relative z-10 w-full max-w-[155px] shadow-[9px_22px_34px_rgba(0,0,0,.14)] sm:max-w-[255px]"
                   >
                     <BookCover book={selectedBook} eager className="aspect-[2/3] w-full" />
                   </motion.div>
@@ -843,13 +843,13 @@ export default function Home() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: prefersReducedMotion ? 0 : 10 }}
                   transition={{ duration: prefersReducedMotion ? 0.12 : 0.48, delay: prefersReducedMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex flex-col justify-center px-8 pb-12 pt-16 sm:px-12 md:px-16 md:py-20"
+                  className="flex flex-col justify-center px-6 pb-10 pt-10 sm:px-12 sm:pb-12 sm:pt-16 md:px-16 md:py-20"
                 >
                   <div className="mb-9 flex items-center justify-between gap-4 border-b border-[#DCD8D0] pb-5 font-sans text-[10px] uppercase tracking-[0.2em] text-[#6B665E]">
                     <p>003 / READING JOURNAL</p>
                     <p>ENTRY {String(Math.max(1, sortedBooks.findIndex((book) => book.id === selectedBook.id) + 1)).padStart(3, "0")}</p>
                   </div>
-                  <h2 className="break-keep text-[clamp(2.15rem,4vw,4rem)] font-normal leading-[1.12] tracking-[-0.065em]" style={{ fontFamily: BOOK_TITLE_FONT }}>{selectedBook.title}</h2>
+                  <h2 className="break-keep text-[clamp(1.85rem,4vw,4rem)] font-normal leading-[1.12] tracking-[-0.065em] sm:text-[clamp(2.15rem,4vw,4rem)]" style={{ fontFamily: BOOK_TITLE_FONT }}>{selectedBook.title}</h2>
                   <p className="mt-5 font-sans text-[12px] tracking-[0.035em] text-[#777168]">{selectedBook.author}</p>
                   <div className="mt-10 grid grid-cols-2 gap-6 border-y border-[#DCD8D0] py-5 font-sans">
                     <div>
@@ -893,13 +893,13 @@ export default function Home() {
           <motion.div
             key="trash"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-[#24231f]/45 p-3 backdrop-blur-[5px] sm:p-7"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-[#24231f]/45 p-0 backdrop-blur-[5px] sm:p-7"
             onMouseDown={(event) => { if (event.target === event.currentTarget && !trashBusyId) setIsTrashOpen(false); }}
           >
             <motion.section
               role="dialog" aria-modal="true" aria-label="독서 아카이브 휴지통"
               initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
-              className="max-h-[90vh] w-full max-w-[800px] overflow-y-auto bg-white p-6 text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.18)] sm:p-12"
+              className="h-[100dvh] max-h-[100dvh] w-full max-w-[800px] overflow-y-auto overscroll-contain bg-white p-5 text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.18)] sm:h-auto sm:max-h-[90vh] sm:p-12"
             >
               <div className="mb-8 flex items-start justify-between gap-5 border-b border-black/15 pb-7">
                 <div>
@@ -907,7 +907,7 @@ export default function Home() {
                   <h2 className="text-4xl font-normal tracking-[-0.07em] sm:text-5xl" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>Trash<span className="italic">.</span></h2>
                   <p className="mt-4 font-sans text-[12px] leading-5 text-[#77746c]">삭제한 책과 독서 기록은 직접 영구 삭제하기 전까지 보관됩니다.</p>
                 </div>
-                <button type="button" onClick={() => setIsTrashOpen(false)} disabled={Boolean(trashBusyId)} className="text-2xl text-[#6B665E] hover:text-black disabled:opacity-30" aria-label="휴지통 닫기">×</button>
+                <button type="button" onClick={() => setIsTrashOpen(false)} disabled={Boolean(trashBusyId)} className="flex min-h-11 min-w-11 items-center justify-center text-2xl text-[#6B665E] hover:text-black disabled:opacity-30" aria-label="휴지통 닫기">×</button>
               </div>
 
               {trashError && <p role="alert" className="mb-6 font-sans text-xs leading-6 text-red-800">{trashError}</p>}
@@ -952,20 +952,20 @@ export default function Home() {
           <motion.div
             key="form"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-[#24231f]/45 p-3 backdrop-blur-[5px] sm:p-7"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-[#24231f]/45 p-0 backdrop-blur-[5px] sm:p-7"
             onMouseDown={(event) => { if (event.target === event.currentTarget && !isSaving) closeForm(); }}
           >
             <motion.section
               role="dialog" aria-modal="true" aria-label={editingBookId ? "책 수정" : "책 등록"}
               initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
-              className="max-h-[92vh] w-full max-w-[710px] overflow-y-auto bg-white p-7 text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.18)] sm:p-12"
+              className="h-[100dvh] max-h-[100dvh] w-full max-w-[710px] overflow-y-auto overscroll-contain bg-white p-5 text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.18)] sm:h-auto sm:max-h-[92vh] sm:p-12"
             >
               <div className="mb-8 flex items-start justify-between gap-5 border-b border-black/15 pb-7">
                 <div>
                   <p className="mb-4 text-[10px] font-semibold tracking-[0.23em] text-[#6B665E]">ARCHIVE EDITOR</p>
                   <h2 className="text-4xl font-normal tracking-[-0.07em] sm:text-5xl" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>{editingBookId ? "Edit a book." : "Add a book."}</h2>
                 </div>
-                <button type="button" onClick={closeForm} disabled={isSaving} className="text-2xl text-[#6B665E] hover:text-black" aria-label="입력창 닫기">×</button>
+                <button type="button" onClick={closeForm} disabled={isSaving} className="flex min-h-11 min-w-11 items-center justify-center text-2xl text-[#6B665E] hover:text-black" aria-label="입력창 닫기">×</button>
               </div>
               <form onSubmit={(event) => void handleSubmit(event)} className="space-y-7">
                 <div className="grid gap-7 sm:grid-cols-2">
