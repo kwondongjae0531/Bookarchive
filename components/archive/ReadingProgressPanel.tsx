@@ -4,12 +4,14 @@ import { useState } from "react";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../app/firebase";
 import type { ReadingStatus } from "../../lib/archive/types";
+import { dateForLegacySort, todayString } from "../../lib/archive/utils";
 
 export default function ReadingProgressPanel({
   bookId,
   bookTitle,
   currentPage,
   totalPages,
+  startDate,
   isAdmin,
   onSaved,
 }: {
@@ -17,6 +19,7 @@ export default function ReadingProgressPanel({
   bookTitle: string;
   currentPage: number;
   totalPages: number;
+  startDate: string;
   isAdmin: boolean;
   onSaved: () => Promise<void>;
 }) {
@@ -46,20 +49,23 @@ export default function ReadingProgressPanel({
     }
     if (!isChanged) return;
 
-    // 100% 도달해도 사용자가 선택하기 전에는 완독으로 바꾸지 않습니다.
-    const markCompleted =
-      value === totalPages && currentPage < totalPages &&
-      window.confirm("끝까지 읽었네요! 이 책을 '완독'으로 변경할까요?\n취소하면 '읽는 중' 100%로 저장돼요.");
-
+    // 마지막 페이지까지 저장하면 별도 확인 없이 자동 완독으로 전환합니다.
+    const markCompleted = value === totalPages;
+    const completedOn = markCompleted ? todayString() : "";
     setIsSavingPage(true);
     setFeedback("");
     try {
       await updateDoc(doc(db, "books", bookId), {
         currentPage: value,
-        ...(markCompleted ? { status: "완독" as ReadingStatus } : {}),
+        ...(markCompleted ? {
+          status: "완독" as ReadingStatus,
+          startDate,
+          finishedDate: completedOn,
+          date: dateForLegacySort("완독", startDate, completedOn),
+        } : {}),
       });
       await onSaved();
-      setFeedback(markCompleted ? "완독으로 기록했어요." : "읽은 페이지를 저장했어요.");
+      setFeedback(markCompleted ? "마지막 페이지까지 읽어 자동 완독 처리했어요!" : "읽은 페이지를 저장했어요.");
     } catch (err) {
       console.error("읽은 페이지 업데이트 오류:", err);
       setFeedback("저장하지 못했어요. 연결 상태나 Firebase 권한을 확인해주세요.");

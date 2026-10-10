@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from "react";
 import type { Book } from "../../lib/archive/types";
-import { BOOK_TITLE_FONT, getReadingProgress } from "../../lib/archive/utils";
+import { BOOK_TITLE_FONT, getReadingProgress, getBookStartDate, getBookFinishedDate, getReadingDurationDays } from "../../lib/archive/utils";
 import BookCover from "./BookCover";
 import ReadingProgressPanel from "./ReadingProgressPanel";
 
@@ -115,11 +115,20 @@ export default function BookDetail({
                   </div>
                   <h2 id="archive-book-detail-title" className="break-keep text-[clamp(1.85rem,4vw,4rem)] font-normal leading-[1.12] tracking-[-0.065em] sm:text-[clamp(2.15rem,4vw,4rem)]" style={{ fontFamily: BOOK_TITLE_FONT }}>{selectedBook.title}</h2>
                   <p className="mt-5 font-sans text-[12px] tracking-[0.035em] text-[#777168]">{selectedBook.author}</p>
-                  <div className="mt-10 grid grid-cols-2 gap-6 border-y border-[#DCD8D0] py-5 font-sans">
+                  <div className="mt-10 grid grid-cols-2 gap-6 border-y border-[#DCD8D0] py-5 font-sans sm:grid-cols-3">
                     <div>
-                      <p className="mb-2 text-[10px] uppercase tracking-[0.17em] text-[#6B665E]">READING DATE</p>
-                      <p className="text-[11px] tracking-[0.05em] text-[#4C4842]">{selectedBook.date || "—"}</p>
+                      <p className="mb-2 text-[10px] uppercase tracking-[0.17em] text-[#6B665E]">START DATE / 독서 시작일</p>
+                      <p className="text-[11px] tracking-[0.05em] text-[#4C4842]">{getBookStartDate(selectedBook).replace(/-/g, ".") || "—"}</p>
                     </div>
+                    {selectedBook.status === "완독" && (
+                      <div>
+                        <p className="mb-2 text-[10px] uppercase tracking-[0.17em] text-[#6B665E]">FINISHED / 완독일</p>
+                        <p className="text-[11px] tracking-[0.05em] text-[#4C4842]">{getBookFinishedDate(selectedBook).replace(/-/g, ".") || "—"}</p>
+                        {getReadingDurationDays(selectedBook) !== null && (
+                          <p className="mt-1 text-[10px] text-[#6B665E]">독서 기간 {getReadingDurationDays(selectedBook)}일</p>
+                        )}
+                      </div>
+                    )}
                     <div>
                       <p className="mb-2 text-[10px] uppercase tracking-[0.17em] text-[#6B665E]">STATUS</p>
                       <p className="text-[11px] tracking-[0.05em] text-[#4C4842]">{selectedBook.status}</p>
@@ -132,6 +141,7 @@ export default function BookDetail({
                       bookTitle={selectedBook.title}
                       currentPage={getReadingProgress(selectedBook)!.current}
                       totalPages={getReadingProgress(selectedBook)!.total}
+                      startDate={getBookStartDate(selectedBook)}
                       isAdmin={isAdmin}
                       onSaved={onSaved}
                     />

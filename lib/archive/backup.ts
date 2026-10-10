@@ -1,6 +1,6 @@
 import type { ArchiveBackup, BackupData, BackupRecord } from "./types";
 
-const BACKUP_STRING_FIELDS = ["title", "author", "date", "imageUrl", "status", "quote", "review"] as const;
+const BACKUP_STRING_FIELDS = ["title", "author", "date", "startDate", "finishedDate", "imageUrl", "status", "quote", "review"] as const;
 const BACKUP_NUMBER_FIELDS = ["createdAt", "totalPages", "currentPage", "trashedAt"] as const;
 export const BACKUP_MAX_FILE_BYTES = 10 * 1024 * 1024;
 export const BACKUP_MAX_RECORDS = 5000;

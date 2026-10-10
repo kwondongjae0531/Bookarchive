@@ -5,7 +5,9 @@ export interface Book {
   id: string;
   title: string;
   author: string;
-  date: string;
+  date: string; // 기존 정렬·표시용 날짜 (완독: 완독일 / 읽는 중: 시작일)
+  startDate?: string; // 독서 시작일, YYYY-MM-DD (기존 데이터는 date로 보완)
+  finishedDate?: string; // 완독일, YYYY-MM-DD (기존 데이터는 date로 보완)
   imageUrl: string;
   status: ReadingStatus;
   review?: string;
@@ -17,7 +19,9 @@ export interface Book {
 }
 
 // 입력 중에는 빈 값을 허용할 수 있도록 페이지 입력을 문자열로 관리합니다.
-export type BookForm = Omit<Book, "id" | "createdAt" | "totalPages" | "currentPage"> & {
+export type BookForm = Omit<Book, "id" | "createdAt" | "date" | "startDate" | "finishedDate" | "totalPages" | "currentPage"> & {
+  startDate: string;
+  finishedDate: string;
   totalPages: string;
   currentPage: string;
 };

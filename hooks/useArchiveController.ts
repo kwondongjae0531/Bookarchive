@@ -12,7 +12,7 @@ import { db } from "../app/firebase";
 import type {
   Book, BookForm, TrashBook, SortBy, ArchiveBackup, BackupRecord, RestoreMode,
 } from "../lib/archive/types";
-import { FALLBACK_COVER, todayString, emptyForm } from "../lib/archive/utils";
+import { FALLBACK_COVER, todayString, emptyForm, getBookStartDate, getBookFinishedDate, dateForLegacySort } from "../lib/archive/utils";
 import {
   BACKUP_MAX_FILE_BYTES, normalizeBackupData, parseArchiveBackup,
 } from "../lib/archive/backup";
@@ -130,7 +130,9 @@ export function useArchiveController() {
           id: item.id,
           title: value.title || "제목 없음",
           author: value.author || "작가 미상",
-          date: value.date || "",
+          date: value.date || dateForLegacySort(value.status === "읽는 중" ? "읽는 중" : "완독", value.startDate || "", value.finishedDate || ""),
+          startDate: typeof value.startDate === "string" ? value.startDate : undefined,
+          finishedDate: typeof value.finishedDate === "string" ? value.finishedDate : undefined,
           imageUrl: value.imageUrl || FALLBACK_COVER,
           status: value.status === "읽는 중" ? "읽는 중" : "완독",
           review: value.review || "",
@@ -167,7 +169,9 @@ export function useArchiveController() {
           id: item.id,
           title: value.title || "제목 없음",
           author: value.author || "작가 미상",
-          date: value.date || "",
+          date: value.date || dateForLegacySort(value.status === "읽는 중" ? "읽는 중" : "완독", value.startDate || "", value.finishedDate || ""),
+          startDate: typeof value.startDate === "string" ? value.startDate : undefined,
+          finishedDate: typeof value.finishedDate === "string" ? value.finishedDate : undefined,
           imageUrl: value.imageUrl || FALLBACK_COVER,
           status: value.status === "읽는 중" ? "읽는 중" : "완독",
           review: value.review || "",
@@ -419,7 +423,7 @@ export function useArchiveController() {
     if (!isAdmin) return;
     setSelectedBookId(null);
     setEditingBookId(null);
-    setForm({ ...emptyForm(), date: todayString() });
+    setForm({ ...emptyForm(), finishedDate: todayString() });
     setIsFormOpen(true);
   }
 
@@ -430,7 +434,8 @@ export function useArchiveController() {
     setForm({
       title: book.title,
       author: book.author,
-      date: book.date.replace(/\./g, "-"),
+      startDate: getBookStartDate(book),
+      finishedDate: getBookFinishedDate(book),
       imageUrl: book.imageUrl,
       status: book.status,
       review: book.review || "",
@@ -449,6 +454,11 @@ export function useArchiveController() {
     }
     if (!form.title.trim() || !form.author.trim()) {
       window.alert("책 제목과 작가를 입력해주세요.");
+      return;
+    }
+    // 독서 시작일이 완독일보다 늦을 수 없도록 검사합니다.
+    if (form.status === "완독" && form.startDate && form.finishedDate && form.finishedDate < form.startDate) {
+      window.alert("완독일은 독서 시작일보다 빠를 수 없어요.");
       return;
     }
     const totalText = form.totalPages.trim();
@@ -477,14 +487,27 @@ export function useArchiveController() {
       ? Number(totalText) : null;
     const currentPage = totalPages !== null && currentText && /^\d+$/.test(currentText) && Number.isSafeInteger(Number(currentText))
       ? Math.min(Number(currentText), totalPages) : totalPages !== null ? 0 : null;
+    // 수정 화면에서도 마지막 페이지까지 채우고 저장하면 자동 완독 처리합니다.
+    // 이미 완독한 책을 수정할 때는 기존 완독일을 덮어쓰지 않습니다.
+    const autoCompleted = form.status === "읽는 중" && totalPages !== null && currentPage === totalPages;
+    const nextStatus = autoCompleted ? "완독" : form.status;
+    const nextFinishedDate = autoCompleted ? (form.finishedDate || todayString()) : form.finishedDate;
+    if (nextStatus === "완독" && form.startDate && nextFinishedDate && nextFinishedDate < form.startDate) {
+      window.alert("완독일은 독서 시작일보다 빠를 수 없어요. 날짜를 확인해주세요.");
+      return;
+    }
     setIsSaving(true);
     try {
       const bookData = {
         title: form.title.trim(),
         author: form.author.trim(),
-        date: (form.date || todayString()).replace(/-/g, "."),
+        // date는 예전 데이터와 독서일순 정렬의 호환성을 위해 유지합니다.
+        // 기존 완독 책의 date는 완독일, 읽는 중 책의 date는 독서 시작일입니다.
+        startDate: form.startDate,
+        finishedDate: nextStatus === "완독" ? nextFinishedDate : "",
+        date: dateForLegacySort(nextStatus, form.startDate, nextFinishedDate),
         imageUrl: form.imageUrl.trim() || FALLBACK_COVER,
-        status: form.status,
+        status: nextStatus,
         quote: form.quote?.trim() || "",
         review: form.review?.trim() || "",
         // null을 저장하면 기존 진행률을 안전하게 초기화할 수 있습니다.

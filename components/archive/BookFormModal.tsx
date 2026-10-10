@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { BookForm, ReadingStatus } from "../../lib/archive/types";
+import { todayString } from "../../lib/archive/utils";
 
 const fieldClass =
   "mt-2 block w-full rounded-none border-b border-[#c9c7c1] bg-transparent px-0 py-3 text-[16px] text-[#262520] outline-none placeholder:text-[#716C64] focus:border-[#24231f] sm:text-[14px]";
@@ -50,13 +51,26 @@ export default function BookFormModal({
                     <input required value={form.author} onChange={(event) => setForm({ ...form, author: event.target.value })} placeholder="작가" className={fieldClass} />
                   </label>
                   <label className="block text-[12px] text-[#77746c]">독서 상태
-                    <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as ReadingStatus })} className={fieldClass}>
+                    <select value={form.status} onChange={(event) => {
+                      const status = event.target.value as ReadingStatus;
+                      setForm({
+                        ...form,
+                        status,
+                        startDate: status === "읽는 중" && !form.startDate ? todayString() : form.startDate,
+                        finishedDate: status === "완독" && !form.finishedDate ? todayString() : form.finishedDate,
+                      });
+                    }} className={fieldClass}>
                       <option value="완독">완독</option><option value="읽는 중">읽는 중</option>
                     </select>
                   </label>
-                  <label className="block text-[12px] text-[#77746c]">독서 날짜
-                    <input type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className={fieldClass} />
+                  <label className="block text-[12px] text-[#77746c]">독서 시작일 (선택)
+                    <input type="date" value={form.startDate} onChange={(event) => setForm({ ...form, startDate: event.target.value })} className={fieldClass} />
                   </label>
+                  {form.status === "완독" && (
+                    <label className="block text-[12px] text-[#77746c]">완독일 (선택)
+                      <input type="date" min={form.startDate || undefined} value={form.finishedDate} onChange={(event) => setForm({ ...form, finishedDate: event.target.value })} className={fieldClass} />
+                    </label>
+                  )}
                 </div>
                 {form.status === "읽는 중" && (
                   <div className="border-y border-[#E4E0D9] py-6 font-sans">
@@ -71,9 +85,16 @@ export default function BookFormModal({
                       </label>
                     </div>
                     {form.totalPages.trim() && /^\d+$/.test(form.totalPages.trim()) && Number.isSafeInteger(Number(form.totalPages)) && Number(form.totalPages) > 0 && /^\d*$/.test(form.currentPage.trim()) && Number.isSafeInteger(Number(form.currentPage || 0)) && Number(form.currentPage || 0) <= Number(form.totalPages) && (
-                      <p className="mt-4 font-mono text-[11px] tabular-nums text-[#57534D]">
-                        현재 진행률: {Math.round((Number(form.currentPage || 0) / Number(form.totalPages)) * 100)}%
-                      </p>
+                      <div className="mt-4 space-y-2">
+                        <p className="font-mono text-[11px] tabular-nums text-[#57534D]">
+                          현재 진행률: {Math.round((Number(form.currentPage || 0) / Number(form.totalPages)) * 100)}%
+                        </p>
+                        {form.currentPage.trim() !== "" && Number(form.currentPage) === Number(form.totalPages) && (
+                          <p role="status" className="text-[12px] font-semibold leading-6 text-[#38362F]">
+                            마지막 페이지까지 읽었어요! 저장하면 자동으로 완독 처리하고 완독일을 기록해요.
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
