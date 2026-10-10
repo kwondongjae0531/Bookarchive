@@ -67,6 +67,106 @@ type BookForm = Omit<Book, "id" | "createdAt" | "totalPages" | "currentPage"> & 
 };
 type TrashBook = Book & { trashedAt?: number };
 
+// 백업 파일은 화면에 필요한 기존 Firestore 필드를 그대로 보존합니다.
+// 가져올 때 외부 파일의 타입을 검사하고 같은 문서 ID는 기본적으로 덮어쓰지 않습니다.
+type BackupValue = string | number | null;
+type BackupData = Record<string, BackupValue>;
+type BackupRecord = { id: string; data: BackupData };
+type ArchiveBackup = {
+  format: "kwons-archive";
+  version: 1;
+  projectId: string;
+  exportedAt: string;
+  books: BackupRecord[];
+  trash: BackupRecord[];
+};
+type RestoreMode = "missing" | "overwrite";
+
+const BACKUP_STRING_FIELDS = ["title", "author", "date", "imageUrl", "status", "quote", "review"] as const;
+const BACKUP_NUMBER_FIELDS = ["createdAt", "totalPages", "currentPage", "trashedAt"] as const;
+const BACKUP_MAX_FILE_BYTES = 10 * 1024 * 1024;
+const BACKUP_MAX_RECORDS = 5000;
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizeBackupData(value: unknown, source: "books" | "trash"): BackupData {
+  if (!isPlainObject(value)) throw new Error("책 데이터 형식이 올바르지 않아요.");
+  const data: BackupData = {};
+  for (const key of BACKUP_STRING_FIELDS) {
+    if (!(key in value)) continue;
+    const item = value[key];
+    if (typeof item !== "string") throw new Error(`책 데이터의 ${key} 값이 문자열이 아니에요.`);
+    data[key] = item;
+  }
+  for (const key of BACKUP_NUMBER_FIELDS) {
+    if (key === "trashedAt" && source !== "trash") continue;
+    if (!(key in value)) continue;
+    const item = value[key];
+    if (item !== null && (typeof item !== "number" || !Number.isFinite(item))) {
+      throw new Error(`책 데이터의 ${key} 값이 올바르지 않아요.`);
+    }
+    data[key] = item as number | null;
+  }
+  if (data.status !== undefined && data.status !== "완독" && data.status !== "읽는 중") {
+    throw new Error("독서 상태가 올바르지 않아요.");
+  }
+  for (const field of ["totalPages", "currentPage", "createdAt", "trashedAt"] as const) {
+    const num = data[field];
+    if (typeof num === "number" && !Number.isSafeInteger(num)) {
+      throw new Error(`${field} 값이 올바르지 않아요.`);
+    }
+  }
+  if (typeof data.totalPages === "number" && data.totalPages <= 0) throw new Error("전체 페이지 수가 올바르지 않아요.");
+  if (typeof data.currentPage === "number" && (data.currentPage < 0 ||
+      (typeof data.totalPages === "number" && data.currentPage > data.totalPages))) {
+    throw new Error("현재 읽은 페이지 수가 올바르지 않아요.");
+  }
+  return data;
+}
+
+function parseArchiveBackup(value: unknown, currentProjectId: string): ArchiveBackup {
+  if (!isPlainObject(value) || value.format !== "kwons-archive" || value.version !== 1) {
+    throw new Error("KWON'S ARCHIVE 백업 파일(v1)이 아니에요.");
+  }
+  if (typeof value.projectId !== "string" || value.projectId !== currentProjectId) {
+    throw new Error("다른 Firebase 프로젝트의 백업이에요. 현재 아카이브와 프로젝트가 일치해야 해요.");
+  }
+  if (typeof value.exportedAt !== "string" || !Array.isArray(value.books) || !Array.isArray(value.trash)) {
+    throw new Error("백업 파일의 구성 정보가 잘못되었어요.");
+  }
+  if (value.books.length + value.trash.length > BACKUP_MAX_RECORDS) {
+    throw new Error("백업에 포함된 책이 너무 많아요.");
+  }
+  const parseRecords = (items: unknown[], source: "books" | "trash"): BackupRecord[] => {
+    const seen = new Set<string>();
+    return items.map((item) => {
+      if (!isPlainObject(item) || typeof item.id !== "string" ||
+          !item.id.trim() || item.id.includes("/") || item.id.length > 1500 ||
+          /^__.*__$/.test(item.id) || seen.has(item.id)) {
+        throw new Error(`${source} 컬렉션의 책 ID가 올바르지 않거나 중복되었어요.`);
+      }
+      seen.add(item.id);
+      return { id: item.id, data: normalizeBackupData(item.data, source) };
+    });
+  };
+  const books = parseRecords(value.books, "books");
+  const trash = parseRecords(value.trash, "trash");
+  const bookIds = new Set(books.map((entry) => entry.id));
+  if (trash.some((entry) => bookIds.has(entry.id))) {
+    throw new Error("같은 책 ID가 책장과 휴지통에 동시에 들어 있는 백업은 복원할 수 없어요.");
+  }
+  return {
+    format: "kwons-archive",
+    version: 1,
+    projectId: value.projectId,
+    exportedAt: value.exportedAt,
+    books,
+    trash,
+  };
+}
+
 const FALLBACK_COVER =
   "https://images.unsplash.com/photo-1495640388908-05fa85288e61?auto=format&fit=crop&q=80&w=800";
 const BOOKS_PER_SHELF_PAGE = 10;
@@ -149,6 +249,7 @@ function BookshelfGallery({
   onSelect,
   onAdd,
   onOpenTrash,
+  onOpenBackup,
   isLoading,
   isAdmin,
   authUser,
@@ -163,6 +264,7 @@ function BookshelfGallery({
   onSelect: (bookId: string, source: "shelf" | "index") => void;
   onAdd: () => void;
   onOpenTrash: () => void;
+  onOpenBackup: () => void;
   isLoading: boolean;
   isAdmin: boolean;
   authUser: User | null;
@@ -201,6 +303,11 @@ function BookshelfGallery({
           {isAdmin && (
             <button type="button" onClick={onOpenTrash} className="inline-flex min-h-11 items-center text-[12px] font-semibold uppercase tracking-[0.13em] text-[#77746e] transition-opacity hover:opacity-45 sm:min-h-0 sm:text-[11px]">
               TRASH
+            </button>
+          )}
+          {isAdmin && (
+            <button type="button" onClick={onOpenBackup} className="inline-flex min-h-11 items-center text-[12px] font-semibold uppercase tracking-[0.13em] text-[#77746e] transition-opacity hover:opacity-45 sm:min-h-0 sm:text-[11px]">
+              BACKUP
             </button>
           )}
           <button
@@ -500,6 +607,14 @@ export default function Home() {
   const [isTrashLoading, setIsTrashLoading] = useState(false);
   const [trashError, setTrashError] = useState("");
   const [trashBusyId, setTrashBusyId] = useState<string | null>(null);
+  const [isBackupOpen, setIsBackupOpen] = useState(false);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [backupError, setBackupError] = useState("");
+  const [backupNotice, setBackupNotice] = useState("");
+  const [restorePreview, setRestorePreview] = useState<ArchiveBackup | null>(null);
+  const [restoreFileName, setRestoreFileName] = useState("");
+  const [restoreMode, setRestoreMode] = useState<RestoreMode>("missing");
+  const backupFileRef = useRef<HTMLInputElement>(null);
   // 이 값은 클라이언트 UI용입니다. 실제 보안은 별도 Firestore Rules가 담당합니다.
   const adminUid = process.env.NEXT_PUBLIC_ADMIN_UID?.trim() || "";
   const isAdmin = Boolean(authUser && adminUid && authUser.uid === adminUid);
@@ -513,6 +628,8 @@ export default function Home() {
         if (!user || user.uid !== (process.env.NEXT_PUBLIC_ADMIN_UID?.trim() || "")) {
           setIsTrashOpen(false);
           setTrashedBooks([]);
+          setIsBackupOpen(false);
+          setRestorePreview(null);
         }
         setAuthReady(true);
         setAuthError("");
@@ -556,6 +673,8 @@ export default function Home() {
       setEditingBookId(null);
       setIsTrashOpen(false);
       setTrashedBooks([]);
+      setIsBackupOpen(false);
+      setRestorePreview(null);
     } catch (error) {
       console.error("로그아웃 오류:", error);
       setAuthError("로그아웃에 실패했어요. 다시 시도해주세요.");
@@ -640,20 +759,178 @@ export default function Home() {
     void fetchTrash();
   }
 
+  function openBackup() {
+    if (!isAdmin) return;
+    setSelectedBookId(null);
+    setIsTrashOpen(false);
+    setIsBackupOpen(true);
+    setBackupError("");
+    setBackupNotice("");
+  }
+
+  function closeBackup() {
+    if (backupBusy) return;
+    setIsBackupOpen(false);
+    setRestorePreview(null);
+    setRestoreFileName("");
+    setRestoreMode("missing");
+    setBackupError("");
+    setBackupNotice("");
+    if (backupFileRef.current) backupFileRef.current.value = "";
+  }
+
+  async function downloadArchiveBackup() {
+    if (!isAdmin || backupBusy) return;
+    setBackupBusy(true);
+    setBackupError("");
+    setBackupNotice("");
+    try {
+      // 휴지통은 관리자 보안 규칙으로 보호되고, 다운로드도 관리자에게만 노출됩니다.
+      const [booksSnapshot, trashSnapshot] = await Promise.all([
+        getDocs(collection(db, "books")),
+        getDocs(collection(db, "trash")),
+      ]);
+      const payload: ArchiveBackup = {
+        format: "kwons-archive",
+        version: 1,
+        projectId: db.app.options.projectId || "",
+        exportedAt: new Date().toISOString(),
+        books: booksSnapshot.docs.map((entry) => ({
+          id: entry.id, data: normalizeBackupData(entry.data(), "books"),
+        })),
+        trash: trashSnapshot.docs.map((entry) => ({
+          id: entry.id, data: normalizeBackupData(entry.data(), "trash"),
+        })),
+      };
+      const validatedPayload = parseArchiveBackup(payload, payload.projectId);
+      const content = JSON.stringify(validatedPayload, null, 2);
+      const url = URL.createObjectURL(new Blob([content], { type: "application/json;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `kwons-archive-backup-${todayString()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+      setBackupNotice(`백업 파일 생성 완료: 책 ${payload.books.length}권 · 휴지통 ${payload.trash.length}권. 안전한 곳에 보관해 주세요.`);
+    } catch (err) {
+      console.error("백업 생성 오류:", err);
+      setBackupError("백업 생성에 실패했어요. 관리자 로그인과 Firebase 읽기 권한을 확인해주세요.");
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  async function loadBackupFile(file: File | undefined) {
+    setRestorePreview(null);
+    setRestoreFileName("");
+    setBackupNotice("");
+    setBackupError("");
+    if (!file) return;
+    if (file.size > BACKUP_MAX_FILE_BYTES) {
+      setBackupError("백업 파일은 10MB 이하만 불러올 수 있어요.");
+      return;
+    }
+    setBackupBusy(true);
+    try {
+      const raw: unknown = JSON.parse(await file.text());
+      const parsed = parseArchiveBackup(raw, db.app.options.projectId || "");
+      setRestorePreview(parsed);
+      setRestoreFileName(file.name);
+      setRestoreMode("missing");
+      setBackupNotice(`파일 확인 완료: 책 ${parsed.books.length}권 · 휴지통 ${parsed.trash.length}권. 아직 Firebase에는 아무것도 변경되지 않았어요.`);
+    } catch (err) {
+      setBackupError(err instanceof Error ? err.message : "백업 파일을 읽을 수 없어요.");
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  async function restoreArchiveBackup() {
+    if (!isAdmin || backupBusy || !restorePreview) return;
+    const overwrite = restoreMode === "overwrite";
+    const description = overwrite
+      ? "동일한 ID의 현재 책/휴지통 기록을 백업 내용으로 덮어씁니다. 다른 책은 삭제하지 않아요."
+      : "현재 없는 책/휴지통 기록만 추가합니다. 기존 기록은 절대 덮어쓰지 않아요.";
+    if (!window.confirm(`백업 파일을 Firebase에 복원할까요?\n${description}`)) return;
+    if (overwrite && window.prompt("기존 기록을 덮어쓰려면 '덮어쓰기'를 입력해주세요.") !== "덮어쓰기") return;
+    setBackupBusy(true);
+    setBackupError("");
+    setBackupNotice("");
+    let added = 0;
+    let replaced = 0;
+    let skipped = 0;
+    let conflicts = 0;
+    const jobs: Array<{ source: "books" | "trash"; record: BackupRecord }> = [
+      ...restorePreview.books.map((record) => ({ source: "books" as const, record })),
+      ...restorePreview.trash.map((record) => ({ source: "trash" as const, record })),
+    ];
+    try {
+      // 각 묶음은 트랜잭션: 읽기 → 쓰기 순서로 처리합니다.
+      // 중단되어도 이미 들어간 항목을 다시 덮어쓰지 않고 재시도할 수 있습니다.
+      for (let offset = 0; offset < jobs.length; offset += 100) {
+        const chunk = jobs.slice(offset, offset + 100);
+        const count = await runTransaction(db, async (transaction) => {
+          const refs = chunk.map(({ source, record }) => doc(db, source, record.id));
+          const oppositeRefs = chunk.map(({ source, record }) => doc(db, source === "books" ? "trash" : "books", record.id));
+          // 모든 읽기를 먼저 수행하여 transaction.set보다 늦게 transaction.get이 실행되지 않도록 합니다.
+          const [snapshots, oppositeSnapshots] = await Promise.all([
+            Promise.all(refs.map((ref) => transaction.get(ref))),
+            Promise.all(oppositeRefs.map((ref) => transaction.get(ref))),
+          ]);
+          let inserted = 0;
+          let updated = 0;
+          let unchanged = 0;
+          let blocked = 0;
+          snapshots.forEach((snapshot, index) => {
+            // 반대쪽 컬렉션에 같은 책이 존재하면 이중 등록을 만들지 않습니다.
+            if (oppositeSnapshots[index].exists()) {
+              blocked++;
+              return;
+            }
+            if (snapshot.exists() && !overwrite) {
+              unchanged++;
+              return;
+            }
+            transaction.set(refs[index], chunk[index].record.data);
+            if (snapshot.exists()) updated++; else inserted++;
+          });
+          return { inserted, updated, unchanged, blocked };
+        });
+        added += count.inserted;
+        replaced += count.updated;
+        skipped += count.unchanged;
+        conflicts += count.blocked;
+        setBackupNotice(`복원 진행 중: ${Math.min(offset + chunk.length, jobs.length)} / ${jobs.length}건 처리`);
+      }
+      await Promise.all([fetchBooks(), fetchTrash()]);
+      setBackupNotice(`복원 완료: 새로 추가 ${added}건 · 덮어쓰기 ${replaced}건 · 기존 유지 ${skipped}건 · 책장/휴지통 충돌로 보류 ${conflicts}건.${conflicts ? " 충돌한 책은 TRASH에서 확인한 뒤 직접 복원해주세요." : ""}`);
+      setRestorePreview(null);
+      setRestoreFileName("");
+      if (backupFileRef.current) backupFileRef.current.value = "";
+    } catch (err) {
+      console.error("백업 복원 오류:", err);
+      setBackupError(`복원이 중단됐어요. 이전 묶음에서 ${added + replaced}건이 저장됐을 수 있어요. 같은 파일로 다시 시도할 수 있습니다. ${err instanceof Error ? err.message : ""}`);
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
   useEffect(() => {
     if (isSearchOpen) searchInputRef.current?.focus();
   }, [isSearchOpen]);
 
   useEffect(() => {
-    if (!isFormOpen && !selectedBookId && !isTrashOpen) return;
+    if (!isFormOpen && !selectedBookId && !isTrashOpen && !isBackupOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && !isSaving && !trashBusyId) {
+      if (event.key === "Escape" && !isSaving && !trashBusyId && !backupBusy) {
         setIsFormOpen(false);
         setSelectedBookId(null);
         setEditingBookId(null);
         setIsTrashOpen(false);
+        setIsBackupOpen(false);
       }
     }
     window.addEventListener("keydown", onKeyDown);
@@ -661,7 +938,7 @@ export default function Home() {
       document.body.style.overflow = previous;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [isFormOpen, selectedBookId, isTrashOpen, isSaving, trashBusyId]);
+  }, [isFormOpen, selectedBookId, isTrashOpen, isBackupOpen, isSaving, trashBusyId, backupBusy]);
 
   const sortedBooks = useMemo(() => [...books].sort((a, b) => {
     if (sortBy === "dateDesc") return b.date.localeCompare(a.date);
@@ -803,6 +1080,7 @@ export default function Home() {
     if (!isAdmin || trashBusyId) return;
     if (!window.confirm(`‘${book.title}’을(를) 휴지통으로 이동할까요?\n언제든 복원할 수 있어요.`)) return;
     setTrashBusyId(book.id);
+    const movedAt = Date.now(); // 트랜잭션 재시도 시에도 동일한 이동 시각 사용
     try {
       await runTransaction(db, async (transaction) => {
         const bookRef = doc(db, "books", book.id);
@@ -812,7 +1090,7 @@ export default function Home() {
         ]);
         if (!bookSnap.exists()) throw new Error("이미 삭제되었거나 존재하지 않는 책이에요.");
         if (trashSnap.exists()) throw new Error("휴지통에 같은 ID의 책이 이미 존재해요.");
-        transaction.set(trashRef, { ...bookSnap.data(), trashedAt: Date.now() });
+        transaction.set(trashRef, { ...bookSnap.data(), trashedAt: movedAt });
         transaction.delete(bookRef);
       });
       setSelectedBookId(null);
@@ -876,6 +1154,7 @@ export default function Home() {
         onSelect={selectBook}
         onAdd={openAddForm}
         onOpenTrash={openTrash}
+        onOpenBackup={openBackup}
         isLoading={isLoading}
         isAdmin={isAdmin}
         authUser={authUser}
@@ -1157,6 +1436,76 @@ export default function Home() {
               <div className="mt-8 flex justify-end border-t border-black/10 pt-6">
                 <button type="button" disabled={Boolean(trashBusyId)} onClick={() => void fetchTrash()} className="font-sans text-[11px] font-semibold tracking-[0.12em] text-[#77756F] transition-opacity hover:opacity-45 disabled:opacity-30">REFRESH ↗</button>
               </div>
+            </motion.section>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 관리자 전용 데이터 백업·복원. 기존 책장/휴지통 기능과 독립적입니다. */}
+      <AnimatePresence>
+        {isBackupOpen && isAdmin && (
+          <motion.div
+            key="backup"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-[#24231f]/45 p-0 backdrop-blur-[5px] sm:p-7"
+            onMouseDown={(event) => { if (event.target === event.currentTarget) closeBackup(); }}
+          >
+            <motion.section
+              role="dialog" aria-modal="true" aria-label="독서 기록 백업 및 복원"
+              initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
+              className="h-[100dvh] max-h-[100dvh] w-full max-w-[740px] overflow-y-auto overscroll-contain bg-white p-5 text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.18)] sm:h-auto sm:max-h-[92vh] sm:p-12"
+            >
+              <div className="mb-8 flex items-start justify-between gap-5 border-b border-black/15 pb-7">
+                <div>
+                  <p className="mb-4 font-sans text-[10px] font-semibold tracking-[0.23em] text-[#6B665E]">PRIVATE ARCHIVE / ADMIN ONLY</p>
+                  <h2 className="text-4xl font-normal tracking-[-0.07em] sm:text-5xl" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>Backup<span className="italic">.</span></h2>
+                  <p className="mt-4 font-sans text-[12px] leading-6 text-[#66615A]">책장과 휴지통의 독서 기록을 JSON 파일로 보관하고 필요할 때 복원할 수 있어요.</p>
+                </div>
+                <button type="button" onClick={closeBackup} disabled={backupBusy} className="flex min-h-11 min-w-11 items-center justify-center text-2xl text-[#6B665E] hover:text-black disabled:opacity-30" aria-label="백업 창 닫기">×</button>
+              </div>
+
+              <div className="border-b border-black/10 pb-9 font-sans">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6B665E]">01 / EXPORT</p>
+                <h3 className="mb-3 text-[18px] font-medium tracking-[-0.025em]">독서 기록 내려받기</h3>
+                <p className="mb-6 text-[12px] leading-6 text-[#66615A]">현재 책장과 휴지통 전체를 백업해요. 감상문·인용문·독서 진행률도 포함됩니다.</p>
+                <button type="button" disabled={backupBusy} onClick={() => void downloadArchiveBackup()} className="inline-flex min-h-11 items-center justify-center bg-[#1B1B19] px-6 text-[11px] font-semibold tracking-[0.12em] text-white transition-opacity hover:opacity-75 disabled:opacity-40">
+                  {backupBusy ? "PLEASE WAIT..." : "DOWNLOAD JSON ↗"}
+                </button>
+              </div>
+
+              <div className="py-9 font-sans">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6B665E]">02 / RESTORE</p>
+                <h3 className="mb-3 text-[18px] font-medium tracking-[-0.025em]">백업 파일 불러오기</h3>
+                <p className="mb-5 text-[12px] leading-6 text-[#66615A]">먼저 JSON 파일을 검사해요. 파일 선택만으로 Firebase 데이터가 바뀌지는 않아요.</p>
+                <input ref={backupFileRef} type="file" accept=".json,application/json" disabled={backupBusy}
+                  aria-label="독서 기록 백업 JSON 선택"
+                  onChange={(event) => { void loadBackupFile(event.target.files?.[0]); }}
+                  className="block w-full max-w-full text-[12px] text-[#57534D] file:mr-4 file:min-h-11 file:cursor-pointer file:border file:border-[#CBC5BB] file:bg-white file:px-4 file:text-[11px] file:font-semibold file:uppercase file:tracking-[0.1em] file:text-[#262520] disabled:opacity-40" />
+                {restorePreview && (
+                  <div className="mt-6 border border-[#E4E0D9] p-4 sm:p-5">
+                    <p className="mb-2 break-all text-[11px] text-[#66615A]">FILE / {restoreFileName}</p>
+                    <p className="text-[13px] font-medium">책 {restorePreview.books.length}권 · 휴지통 {restorePreview.trash.length}권</p>
+                    <p className="mt-2 text-[11px] leading-5 text-[#777168]">백업 시각: {new Date(restorePreview.exportedAt).toLocaleString("ko-KR")}</p>
+                    <div className="mt-6 space-y-3 text-[12px] text-[#4C4842]">
+                      <label className="flex cursor-pointer items-start gap-3">
+                        <input type="radio" name="restore-mode" checked={restoreMode === "missing"} disabled={backupBusy} onChange={() => setRestoreMode("missing")} className="mt-1" />
+                        <span><strong>누락된 기록만 복원 (추천)</strong><span className="mt-1 block text-[11px] leading-5 text-[#777168]">같은 ID가 이미 있으면 건너뛰고, 현재 기록은 그대로 둡니다.</span></span>
+                      </label>
+                      <label className="flex cursor-pointer items-start gap-3">
+                        <input type="radio" name="restore-mode" checked={restoreMode === "overwrite"} disabled={backupBusy} onChange={() => setRestoreMode("overwrite")} className="mt-1" />
+                        <span><strong>같은 ID의 기록 덮어쓰기</strong><span className="mt-1 block text-[11px] leading-5 text-[#777168]">실수로 감상문을 수정했다면 이전 백업으로 되돌릴 수 있어요. 현재 변경사항은 사라집니다.</span></span>
+                      </label>
+                    </div>
+                    <button type="button" disabled={backupBusy || restorePreview.books.length + restorePreview.trash.length === 0} onClick={() => void restoreArchiveBackup()}
+                      className="mt-7 inline-flex min-h-11 items-center justify-center border border-[#24231f] px-6 text-[11px] font-semibold tracking-[0.12em] text-[#24231f] transition-colors hover:bg-[#F7F7F5] disabled:opacity-35">
+                      {backupBusy ? "RESTORING..." : "RESTORE RECORDS ↗"}
+                    </button>
+                  </div>
+                )}
+              </div>
+              {backupError && <p role="alert" className="border-t border-black/10 py-4 font-sans text-[12px] leading-6 text-red-800">{backupError}</p>}
+              {backupNotice && <p role="status" className="border-t border-black/10 py-4 font-sans text-[12px] leading-6 text-[#4C4842]">{backupNotice}</p>}
+              <p className="border-t border-black/10 pt-5 font-sans text-[11px] leading-6 text-[#777168]">백업에는 독서 감상 등 개인 기록이 들어 있어요. JSON 파일을 공개 GitHub에 업로드하지 마세요. 모든 복원은 현재 Firebase 프로젝트 안에서만 진행됩니다.</p>
             </motion.section>
           </motion.div>
         )}
