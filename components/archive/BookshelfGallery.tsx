@@ -143,7 +143,7 @@ export default function BookshelfGallery({
                     />
                     <motion.button
                       type="button"
-                      onClick={() => onSelect(book.id, "shelf")}
+                      onClick={(event) => { event.currentTarget.focus({ preventScroll: true }); onSelect(book.id, "shelf"); }}
                       initial={reducedMotion ? false : { opacity: 0, y: 13 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.2 }}
@@ -172,7 +172,7 @@ export default function BookshelfGallery({
                   <div aria-hidden="true" className="relative z-0 h-[6px] w-full border-t border-[#BEB9B0] bg-gradient-to-b from-[#EEECE7] via-[#F9F8F5] to-transparent" />
 
                   {/* 미술관 캡션처럼, 번호와 제목을 작게 정렬한 책 라벨 */}
-                  <button type="button" onClick={() => onSelect(book.id, "shelf")} className="relative flex h-[112px] w-full flex-col items-start overflow-hidden px-2 pt-4 text-left outline-none transition-opacity duration-300 hover:opacity-70 focus-visible:underline sm:h-[108px] sm:px-5 sm:pt-5 lg:px-7">
+                  <button type="button" onClick={(event) => { event.currentTarget.focus({ preventScroll: true }); onSelect(book.id, "shelf"); }} className="relative flex h-[112px] w-full flex-col items-start overflow-hidden px-2 pt-4 text-left outline-none transition-opacity duration-300 hover:opacity-70 focus-visible:underline sm:h-[108px] sm:px-5 sm:pt-5 lg:px-7">
                     <span className="mb-3 flex w-full items-center justify-between gap-1 border-b border-[#E4E0D9] pb-2 font-mono text-[10px] leading-none tracking-[0.09em] text-[#6B665E]">
                       <span>NO. {String(activePage * BOOKS_PER_SHELF_PAGE + index + 1).padStart(3, "0")}</span>
                       <span className="truncate text-[10px]">{book.status === "읽는 중" ? (getReadingProgress(book) ? `${getReadingProgress(book)?.percent}% READ` : "READING") : "FINISHED"}</span>

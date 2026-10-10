@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import type { MouseEvent } from "react";
+import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from "react";
 import type { Book } from "../../lib/archive/types";
 import { BOOK_TITLE_FONT, getReadingProgress } from "../../lib/archive/utils";
 import BookCover from "./BookCover";
@@ -21,6 +21,48 @@ export default function BookDetail({
   onDelete: (book: Book, event?: MouseEvent<HTMLButtonElement>) => Promise<void>;
   onSaved: () => Promise<void>;
 }) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const lastTriggerRef = useRef<HTMLElement | null>(null);
+
+  // 책 상세 창이 열리면 포커스를 창 안으로 이동하고 닫을 때 원래 책으로 돌립니다.
+  useEffect(() => {
+    if (!selectedBook) return;
+    lastTriggerRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    closeButtonRef.current?.focus({ preventScroll: true });
+
+    return () => {
+      const trigger = lastTriggerRef.current;
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+      lastTriggerRef.current = null;
+    };
+  }, [selectedBook?.id]);
+
+  function keepFocusInside(event: KeyboardEvent<HTMLElement>) {
+    if (event.key !== "Tab") return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter((element) => element.getClientRects().length > 0 && element.getAttribute("aria-hidden") !== "true");
+    if (!focusable.length) {
+      event.preventDefault();
+      dialog.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   return (
       <AnimatePresence>
         {selectedBook && (
@@ -32,14 +74,17 @@ export default function BookDetail({
             onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
           >
             <motion.section
-              role="dialog" aria-modal="true" aria-label={`${selectedBook.title} 상세 기록`}
+              ref={dialogRef}
+              role="dialog" aria-modal="true" aria-labelledby="archive-book-detail-title"
+              tabIndex={-1}
+              onKeyDown={keepFocusInside}
               initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 22, scale: prefersReducedMotion ? 1 : 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: prefersReducedMotion ? 0 : 12, scale: 0.99 }}
               transition={{ duration: prefersReducedMotion ? 0.12 : 0.38, ease: [0.22, 1, 0.36, 1] }}
               className="relative h-[100dvh] max-h-[100dvh] w-full max-w-[1080px] overflow-y-auto overscroll-contain border border-[#E2DED6] bg-white text-[#1A1A18] shadow-[0_24px_90px_rgba(0,0,0,.14)] sm:h-auto sm:max-h-[92vh]"
             >
-              <button type="button" onClick={() => onClose()} className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center bg-white/95 text-[25px] text-[#817e76] transition-colors hover:text-[#1A1A18] sm:right-7 sm:top-6" aria-label="상세 화면 닫기">×</button>
+              <button ref={closeButtonRef} type="button" onClick={() => onClose()} className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center bg-white/95 text-[25px] text-[#817e76] transition-colors hover:text-[#1A1A18] sm:right-7 sm:top-6" aria-label="상세 화면 닫기">×</button>
               <div className="grid min-h-[540px] md:grid-cols-[0.9fr_1.1fr]">
                 {/* 책이 선반에서 걸어 나와 펼쳐지는 것처럼, 표지를 크게 보여줍니다. */}
                 <div className="relative flex items-center justify-center overflow-hidden border-b border-[#E9E5DE] bg-[#F5F3EF] px-8 py-10 sm:px-20 sm:py-20 md:border-b-0 md:border-r md:py-24">
@@ -68,7 +113,7 @@ export default function BookDetail({
                     <p>003 / READING JOURNAL</p>
                     <p>ENTRY {String(Math.max(1, sortedBooks.findIndex((book) => book.id === selectedBook.id) + 1)).padStart(3, "0")}</p>
                   </div>
-                  <h2 className="break-keep text-[clamp(1.85rem,4vw,4rem)] font-normal leading-[1.12] tracking-[-0.065em] sm:text-[clamp(2.15rem,4vw,4rem)]" style={{ fontFamily: BOOK_TITLE_FONT }}>{selectedBook.title}</h2>
+                  <h2 id="archive-book-detail-title" className="break-keep text-[clamp(1.85rem,4vw,4rem)] font-normal leading-[1.12] tracking-[-0.065em] sm:text-[clamp(2.15rem,4vw,4rem)]" style={{ fontFamily: BOOK_TITLE_FONT }}>{selectedBook.title}</h2>
                   <p className="mt-5 font-sans text-[12px] tracking-[0.035em] text-[#777168]">{selectedBook.author}</p>
                   <div className="mt-10 grid grid-cols-2 gap-6 border-y border-[#DCD8D0] py-5 font-sans">
                     <div>

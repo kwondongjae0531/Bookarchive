@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import type { Dispatch, RefObject, SetStateAction } from "react";
+import { useState, type Dispatch, type RefObject, type SetStateAction } from "react";
 import type { Book, SortBy } from "../../lib/archive/types";
 import { BOOK_TITLE_FONT, getReadingProgress, pad } from "../../lib/archive/utils";
 import BookCover from "./BookCover";
@@ -30,6 +30,14 @@ export default function ArchiveIndex({
   onSelect: (id: string, source: "shelf" | "index") => void;
   onAdd: () => void;
 }) {
+  // INDEX 필터는 화면에만 적용되므로 Firebase 쿼리·책장 표시에는 영향을 주지 않습니다.
+  const [statusFilter, setStatusFilter] = useState<"all" | "finished" | "reading">("all");
+  const visibleBooks = filteredBooks.filter((book) =>
+    statusFilter === "all" ||
+    (statusFilter === "finished" && book.status === "완독") ||
+    (statusFilter === "reading" && book.status === "읽는 중")
+  );
+
   return (
       <section id="index" className="mx-auto max-w-[1540px] scroll-mt-8 px-5 pb-20 pt-14 sm:px-12 sm:pb-32 sm:pt-28 lg:px-16">
         <div className="mb-9 grid gap-7 border-t border-[#DCD8D0] border-b border-[#DCD8D0] pb-8 pt-8 sm:mb-12 sm:gap-10 sm:pb-10 sm:pt-10 md:grid-cols-[1fr_auto] md:items-end">
@@ -39,9 +47,26 @@ export default function ArchiveIndex({
             <p className="mt-5 font-sans text-[12px] leading-6 text-[#6B665E]">한 권 한 권, 읽어 온 시간의 목록.</p>
           </div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-[11px] uppercase tracking-[0.12em] sm:gap-7">
-            <span className="text-[#6B665E]">ALL <strong className="ml-1 font-medium text-[#24231f]">{pad(books.length)}</strong></span>
-            <span className="text-[#6B665E]">READ <strong className="ml-1 font-medium text-[#24231f]">{pad(completedCount)}</strong></span>
-            <span className="text-[#6B665E]">READING <strong className="ml-1 font-medium text-[#24231f]">{pad(readingCount)}</strong></span>
+            {([
+              { id: "all", label: "ALL", count: books.length, aria: "전체 책 보기" },
+              { id: "finished", label: "READ", count: completedCount, aria: "완독한 책만 보기" },
+              { id: "reading", label: "READING", count: readingCount, aria: "읽는 중인 책만 보기" },
+            ] as const).map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                onClick={() => setStatusFilter(filter.id)}
+                aria-pressed={statusFilter === filter.id}
+                aria-label={`${filter.aria} (${filter.count}권)`}
+                className={`min-h-11 border-b pb-0.5 font-sans text-[11px] uppercase tracking-[0.12em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#333] sm:min-h-0 ${
+                  statusFilter === filter.id
+                    ? "border-[#24231f] text-[#24231f]"
+                    : "border-transparent text-[#6B665E] hover:border-[#B1ADA5] hover:text-[#24231f]"
+                }`}
+              >
+                {filter.label} <strong className="ml-1 font-medium">{pad(filter.count)}</strong>
+              </button>
+            ))}
             <div className="flex items-center gap-3">
               <AnimatePresence initial={false}>
                 {isSearchOpen && (
@@ -100,7 +125,11 @@ export default function ArchiveIndex({
         </div>
 
         <div className="mb-4 flex items-center justify-between gap-4 font-sans text-[10px] uppercase tracking-[0.18em] text-[#6B665E]">
-          <span>{searchQuery.trim() ? `SEARCH RESULTS / ${pad(filteredBooks.length)}` : "ARCHIVE ENTRIES"}</span>
+          <span aria-live="polite">
+            {searchQuery.trim() || statusFilter !== "all"
+              ? `${statusFilter === "finished" ? "READ" : statusFilter === "reading" ? "READING" : "SEARCH"} RESULTS / ${pad(visibleBooks.length)}`
+              : "ARCHIVE ENTRIES"}
+          </span>
           <span className="hidden sm:inline">TITLE / AUTHOR <span className="ml-6">STATUS / DATE</span></span>
         </div>
 
@@ -109,15 +138,21 @@ export default function ArchiveIndex({
           <div className="py-24 text-center text-[11px] tracking-widest text-[#6B665E]">LOADING COLLECTION...</div>
         ) : books.length === 0 ? (
           <div className="py-24 text-center text-sm text-[#6B665E]">{isAdmin ? "아직 기록된 책이 없어요. ADD BOOK으로 첫 책을 추가해 보세요." : "아직 기록된 책이 없어요."}</div>
-        ) : filteredBooks.length === 0 ? (
-          <div className="py-24 text-center font-sans text-sm text-[#6B665E]">검색 결과가 없어요. 다른 제목이나 작가를 입력해 보세요.</div>
+        ) : visibleBooks.length === 0 ? (
+          <div className="py-24 text-center font-sans text-sm text-[#6B665E]">
+            {searchQuery.trim()
+              ? "조건에 맞는 검색 결과가 없어요. 검색어나 필터를 바꿔보세요."
+              : statusFilter === "finished"
+                ? "아직 완독한 책이 없어요."
+                : "현재 읽는 중인 책이 없어요."}
+          </div>
         ) : (
           <div>
-            {filteredBooks.map((book, index) => (
+            {visibleBooks.map((book, index) => (
               <motion.button
                 key={book.id}
                 type="button"
-                onClick={() => onSelect(book.id, "index")}
+                onClick={(event) => { event.currentTarget.focus({ preventScroll: true }); onSelect(book.id, "index"); }}
                 initial={{ opacity: 0, y: 8 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
