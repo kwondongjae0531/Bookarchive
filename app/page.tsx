@@ -55,9 +55,16 @@ interface Book {
   review?: string;
   quote?: string;
   createdAt?: number;
+  // 기존 책 문서에 필드가 없어도 정상 작동합니다.
+  totalPages?: number;
+  currentPage?: number;
 }
 
-type BookForm = Omit<Book, "id" | "createdAt">;
+// 입력 중에는 빈 값을 허용할 수 있도록 페이지 입력을 문자열로 관리합니다.
+type BookForm = Omit<Book, "id" | "createdAt" | "totalPages" | "currentPage"> & {
+  totalPages: string;
+  currentPage: string;
+};
 type TrashBook = Book & { trashedAt?: number };
 
 const FALLBACK_COVER =
@@ -67,6 +74,20 @@ const BOOKS_PER_SHELF_PAGE = 10;
 // 시스템에 폰트가 없을 경우 뒤쪽 글꼴로 자동 대체됩니다.
 const BOOK_TITLE_FONT = '"AppleMyungjo", "Nanum Myeongjo", "Batang", Georgia, serif';
 const pad = (n: number) => String(n).padStart(2, "0");
+
+// 페이지 정보를 입력한 '읽는 중' 책에만 독서 진행률을 표시합니다.
+// 레거시 문서와 숫자가 잘못된 문서는 건너뜁니다.
+function getReadingProgress(book: Book) {
+  const total = book.totalPages;
+  const current = book.currentPage;
+  if (
+    book.status !== "읽는 중" ||
+    typeof total !== "number" || !Number.isSafeInteger(total) || total <= 0 ||
+    typeof current !== "number" || !Number.isSafeInteger(current) ||
+    current < 0 || current > total
+  ) return null;
+  return { current, total, percent: Math.round((current / total) * 100) };
+}
 
 function todayString() {
   const today = new Date();
@@ -82,6 +103,8 @@ function emptyForm(): BookForm {
     status: "완독",
     quote: "",
     review: "",
+    totalPages: "",
+    currentPage: "",
   };
 }
 
@@ -282,7 +305,7 @@ function BookshelfGallery({
                   <button type="button" onClick={() => onSelect(book.id, "shelf")} className="relative flex h-[112px] w-full flex-col items-start overflow-hidden px-2 pt-4 text-left outline-none transition-opacity duration-300 hover:opacity-70 focus-visible:underline sm:h-[108px] sm:px-5 sm:pt-5 lg:px-7">
                     <span className="mb-3 flex w-full items-center justify-between gap-1 border-b border-[#E4E0D9] pb-2 font-mono text-[10px] leading-none tracking-[0.09em] text-[#6B665E]">
                       <span>NO. {String(activePage * BOOKS_PER_SHELF_PAGE + index + 1).padStart(3, "0")}</span>
-                      <span className="truncate text-[10px]">{book.status === "읽는 중" ? "READING" : "FINISHED"}</span>
+                      <span className="truncate text-[10px]">{book.status === "읽는 중" ? (getReadingProgress(book) ? `${getReadingProgress(book)?.percent}% READ` : "READING") : "FINISHED"}</span>
                     </span>
                     <span className="block w-full truncate text-[13px] leading-[1.4] tracking-[-0.025em] text-[#30302f] sm:text-[14px]" style={{ fontFamily: BOOK_TITLE_FONT }}>{book.title}</span>
                     <span className="mt-1.5 block w-full truncate font-sans text-[11px] leading-[1.35] text-[#6B665E]">{book.author}</span>
@@ -305,6 +328,148 @@ function BookshelfGallery({
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * 책 상세 화면에서 바로 페이지를 기록합니다.
+ * 관리자가 아닌 방문자에게는 진행률만 표시합니다.
+ */
+function ReadingProgressPanel({
+  bookId,
+  bookTitle,
+  currentPage,
+  totalPages,
+  isAdmin,
+  onSaved,
+}: {
+  bookId: string;
+  bookTitle: string;
+  currentPage: number;
+  totalPages: number;
+  isAdmin: boolean;
+  onSaved: () => Promise<void>;
+}) {
+  const [draftPage, setDraftPage] = useState(String(currentPage));
+  const [isSavingPage, setIsSavingPage] = useState(false);
+  const [feedback, setFeedback] = useState("");
+
+  const trimmed = draftPage.trim();
+  const value = /^\d+$/.test(trimmed) ? Number(trimmed) : NaN;
+  const isValidPage = Number.isSafeInteger(value) && value >= 0 && value <= totalPages;
+  const displayPage = isValidPage ? value : currentPage;
+  const percent = Math.round((displayPage / totalPages) * 100);
+  const isChanged = isValidPage && value !== currentPage;
+
+  function addPages(amount: number) {
+    if (isSavingPage) return;
+    const fromPage = isValidPage ? value : currentPage;
+    setDraftPage(String(Math.min(totalPages, fromPage + amount)));
+    setFeedback("");
+  }
+
+  async function savePages() {
+    if (!isAdmin || isSavingPage) return;
+    if (!isValidPage) {
+      setFeedback(`0쪽부터 ${totalPages}쪽 사이의 정수를 입력해주세요.`);
+      return;
+    }
+    if (!isChanged) return;
+
+    // 100% 도달해도 사용자가 선택하기 전에는 완독으로 바꾸지 않습니다.
+    const markCompleted =
+      value === totalPages && currentPage < totalPages &&
+      window.confirm("끝까지 읽었네요! 이 책을 '완독'으로 변경할까요?\n취소하면 '읽는 중' 100%로 저장돼요.");
+
+    setIsSavingPage(true);
+    setFeedback("");
+    try {
+      await updateDoc(doc(db, "books", bookId), {
+        currentPage: value,
+        ...(markCompleted ? { status: "완독" as ReadingStatus } : {}),
+      });
+      await onSaved();
+      setFeedback(markCompleted ? "완독으로 기록했어요." : "읽은 페이지를 저장했어요.");
+    } catch (err) {
+      console.error("읽은 페이지 업데이트 오류:", err);
+      setFeedback("저장하지 못했어요. 연결 상태나 Firebase 권한을 확인해주세요.");
+    } finally {
+      setIsSavingPage(false);
+    }
+  }
+
+  return (
+    <div className="mt-9 font-sans">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-[11px] tracking-[0.035em] text-[#57534D]">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.17em] text-[#6B665E]">READING PROGRESS</span>
+        <span className="font-mono tabular-nums">
+          {displayPage} / {totalPages} PAGES
+          <span className="ml-3 font-semibold text-[#25231F]">{percent}%</span>
+        </span>
+      </div>
+      <div
+        role="progressbar"
+        aria-label={`${bookTitle} 독서 진행률`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="h-[5px] w-full overflow-hidden bg-[#E7E4DE]"
+      >
+        <div className="h-full bg-[#34322E] transition-[width] duration-500 ease-out" style={{ width: `${percent}%` }} />
+      </div>
+      {isAdmin && (
+        <div className="mt-5 border-t border-[#E4E0D9] pt-4">
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6B665E]">QUICK UPDATE / 빠른 페이지 기록</p>
+          <div className="grid grid-cols-4 gap-2">
+            {[1, 5, 10, 20].map((amount) => (
+              <button
+                key={amount}
+                type="button"
+                disabled={isSavingPage || displayPage >= totalPages}
+                onClick={() => addPages(amount)}
+                className="min-h-11 border border-[#DCD8D0] bg-white px-3 py-2 text-[12px] font-semibold text-[#403C36] transition-colors hover:bg-[#F5F3EF] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                +{amount}쪽
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <label className="min-w-[130px] flex-1 text-[11px] text-[#57534D]">
+              현재 읽은 페이지
+              <input
+                type="number"
+                min={0}
+                max={totalPages}
+                step={1}
+                inputMode="numeric"
+                disabled={isSavingPage}
+                value={draftPage}
+                onChange={(event) => { setDraftPage(event.target.value); setFeedback(""); }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void savePages();
+                  }
+                }}
+                aria-invalid={draftPage !== "" && !isValidPage}
+                className="mt-2 block min-h-11 w-full border border-[#C9C5BE] bg-white px-3 text-[16px] text-[#25231F] outline-none focus:border-[#25231F]"
+              />
+            </label>
+            <button
+              type="button"
+              disabled={isSavingPage || !isChanged}
+              onClick={() => void savePages()}
+              className="min-h-11 bg-[#25231F] px-6 text-[12px] font-semibold tracking-[0.08em] text-white transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isSavingPage ? "SAVING..." : "SAVE PAGES ↗"}
+            </button>
+          </div>
+          <p role="status" aria-live="polite" className="mt-2 min-h-5 text-[11px] leading-5 text-[#6B665E]">
+            {feedback || (isChanged ? "변경된 페이지는 저장 버튼을 누르면 반영돼요." : "")}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -414,6 +579,8 @@ export default function Home() {
           review: value.review || "",
           quote: value.quote || "",
           createdAt: typeof value.createdAt === "number" ? value.createdAt : undefined,
+          totalPages: typeof value.totalPages === "number" ? value.totalPages : undefined,
+          currentPage: typeof value.currentPage === "number" ? value.currentPage : undefined,
         } as Book;
       });
       setBooks(data);
@@ -449,6 +616,8 @@ export default function Home() {
           review: value.review || "",
           quote: value.quote || "",
           createdAt: typeof value.createdAt === "number" ? value.createdAt : undefined,
+          totalPages: typeof value.totalPages === "number" ? value.totalPages : undefined,
+          currentPage: typeof value.currentPage === "number" ? value.currentPage : undefined,
           trashedAt: typeof value.trashedAt === "number" ? value.trashedAt : undefined,
         } as TrashBook;
       });
@@ -551,6 +720,8 @@ export default function Home() {
       status: book.status,
       review: book.review || "",
       quote: book.quote || "",
+      totalPages: typeof book.totalPages === "number" ? String(book.totalPages) : "",
+      currentPage: typeof book.currentPage === "number" ? String(book.currentPage) : "",
     });
     setIsFormOpen(true);
   }
@@ -565,6 +736,32 @@ export default function Home() {
       window.alert("책 제목과 작가를 입력해주세요.");
       return;
     }
+    const totalText = form.totalPages.trim();
+    const currentText = form.currentPage.trim();
+    // 모든 페이지 값은 정수만 허용합니다. 0쪽부터 읽기 시작할 수 있습니다.
+    // 값을 모두 비우면 진행률을 지우고 책 데이터는 보존합니다.
+    if (form.status === "읽는 중") {
+      if (currentText && !totalText) {
+        window.alert("읽은 페이지를 입력하려면 전체 페이지 수도 입력해주세요.");
+        return;
+      }
+      if (totalText && (!/^\d+$/.test(totalText) || !Number.isSafeInteger(Number(totalText)) || Number(totalText) <= 0)) {
+        window.alert("전체 페이지 수는 1 이상의 정수로 입력해주세요.");
+        return;
+      }
+      if (currentText && (!/^\d+$/.test(currentText) || !Number.isSafeInteger(Number(currentText)))) {
+        window.alert("현재 읽은 페이지는 0 이상의 정수로 입력해주세요.");
+        return;
+      }
+      if (totalText && currentText && Number(currentText) > Number(totalText)) {
+        window.alert("현재 읽은 페이지는 전체 페이지 수를 초과할 수 없어요.");
+        return;
+      }
+    }
+    const totalPages = totalText && /^\d+$/.test(totalText) && Number.isSafeInteger(Number(totalText)) && Number(totalText) > 0
+      ? Number(totalText) : null;
+    const currentPage = totalPages !== null && currentText && /^\d+$/.test(currentText) && Number.isSafeInteger(Number(currentText))
+      ? Math.min(Number(currentText), totalPages) : totalPages !== null ? 0 : null;
     setIsSaving(true);
     try {
       const bookData = {
@@ -575,6 +772,9 @@ export default function Home() {
         status: form.status,
         quote: form.quote?.trim() || "",
         review: form.review?.trim() || "",
+        // null을 저장하면 기존 진행률을 안전하게 초기화할 수 있습니다.
+        totalPages,
+        currentPage,
       };
       if (editingBookId) {
         await updateDoc(doc(db, "books", editingBookId), bookData);
@@ -787,7 +987,7 @@ export default function Home() {
                   <span className="block truncate text-[14px] font-normal leading-[1.5] tracking-[-0.015em] transition-colors group-hover:text-[#54524D] sm:text-[15px]" style={{ fontFamily: BOOK_TITLE_FONT }}>{book.title}</span>
                   <span className="mt-0.5 block truncate font-sans text-[11px] text-[#6B665E]">{book.author}</span>
                 </span>
-                <span className="hidden text-[11px] text-[#79776F] sm:block">{book.status}</span>
+                <span className="hidden text-[11px] text-[#79776F] sm:block">{book.status === "읽는 중" && getReadingProgress(book) ? `읽는 중 · ${getReadingProgress(book)?.percent}%` : book.status}</span>
                 <span className="hidden font-mono text-[11px] text-[#6B665E] sm:block">{book.date}</span>
                 <span className="text-lg text-[#6B665E] transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[#1A1A18]">↗</span>
               </motion.button>
@@ -861,6 +1061,22 @@ export default function Home() {
                       <p className="text-[11px] tracking-[0.05em] text-[#4C4842]">{selectedBook.status}</p>
                     </div>
                   </div>
+                  {selectedBook.status === "읽는 중" && getReadingProgress(selectedBook) && (
+                    <ReadingProgressPanel
+                      key={selectedBook.id}
+                      bookId={selectedBook.id}
+                      bookTitle={selectedBook.title}
+                      currentPage={getReadingProgress(selectedBook)!.current}
+                      totalPages={getReadingProgress(selectedBook)!.total}
+                      isAdmin={isAdmin}
+                      onSaved={fetchBooks}
+                    />
+                  )}
+                  {selectedBook.status === "읽는 중" && !getReadingProgress(selectedBook) && isAdmin && (
+                    <button type="button" onClick={() => openEditForm(selectedBook)} className="mt-7 self-start border-b border-[#A9A39A] pb-1 font-sans text-[11px] tracking-[0.06em] text-[#57534D] hover:text-black">
+                      + 독서 진행률 기록하기 ↗
+                    </button>
+                  )}
                   {selectedBook.quote && (
                     <div className="mt-10">
                       <p className="mb-4 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8C8981]">01 / SAVED LINE</p>
@@ -984,6 +1200,25 @@ export default function Home() {
                     <input type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className={fieldClass} />
                   </label>
                 </div>
+                {form.status === "읽는 중" && (
+                  <div className="border-y border-[#E4E0D9] py-6 font-sans">
+                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6B665E]">READING PROGRESS / 페이지 기록</p>
+                    <p className="mb-5 text-[11px] leading-6 text-[#6B665E]">전체 페이지 수와 현재 읽은 페이지를 입력하면 책에 진행률이 표시돼요. 둘 다 비워둘 수도 있어요.</p>
+                    <div className="grid grid-cols-2 gap-5">
+                      <label className="block text-[12px] text-[#57534D]">전체 페이지 수
+                        <input type="number" min={1} step={1} inputMode="numeric" value={form.totalPages} onChange={(event) => setForm({ ...form, totalPages: event.target.value })} placeholder="예: 350" className={fieldClass} />
+                      </label>
+                      <label className="block text-[12px] text-[#57534D]">현재 읽은 페이지
+                        <input type="number" min={0} step={1} inputMode="numeric" value={form.currentPage} onChange={(event) => setForm({ ...form, currentPage: event.target.value })} placeholder="예: 140" className={fieldClass} />
+                      </label>
+                    </div>
+                    {form.totalPages.trim() && /^\d+$/.test(form.totalPages.trim()) && Number.isSafeInteger(Number(form.totalPages)) && Number(form.totalPages) > 0 && /^\d*$/.test(form.currentPage.trim()) && Number.isSafeInteger(Number(form.currentPage || 0)) && Number(form.currentPage || 0) <= Number(form.totalPages) && (
+                      <p className="mt-4 font-mono text-[11px] tabular-nums text-[#57534D]">
+                        현재 진행률: {Math.round((Number(form.currentPage || 0) / Number(form.totalPages)) * 100)}%
+                      </p>
+                    )}
+                  </div>
+                )}
                 <label className="block text-[12px] text-[#77746c]">책 표지 이미지 URL
                   <input type="url" value={form.imageUrl} onChange={(event) => setForm({ ...form, imageUrl: event.target.value })} placeholder="https://..." className={fieldClass} />
                 </label>
